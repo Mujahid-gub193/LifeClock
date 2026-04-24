@@ -247,7 +247,6 @@ const adminAuth = async (req, res, next) => {
     res.status(401).json({ message: 'Invalid token' });
   }
 };
-};
 
 app.get('/api/health', async (req, res) => {
   try {
