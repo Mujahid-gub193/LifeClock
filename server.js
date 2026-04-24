@@ -17,7 +17,6 @@ app.use(express.json());
 app.use(session({ secret: process.env.JWT_SECRET || 'lifeclock-secret', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.static('.'));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'lifeclock-secret-change-in-prod';
 const PORT = process.env.PORT || 3000;
@@ -710,6 +709,7 @@ app.put('/api/user/password', auth, async (req, res) => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 // --- Admin Routes ------------------------------------------------------------
 app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
+app.use(express.static('.'));
 
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
