@@ -234,6 +234,7 @@ const auth = async (req, res, next) => {
     res.status(401).json({ message: 'Invalid token' });
   }
 
+};
 const adminAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -753,67 +754,48 @@ app.put('/api/admin/users/:id/role', adminAuth, async (req, res) => {
 });
 
 sequelize.sync({ alter: true })
-  .then(() => {
+  .then(async () => {
     console.log('PostgreSQL connected & tables synced');
 
-    // ─── Email Notification Cron ──────────────────────────────────────────────────
     if (hasEmailConfig) {
       const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
+        service: 'gmail',
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+      });
 
-    cron.schedule('* * * * *', async () => {
-      try {
-        const sessions = await Session.findAll({
-          where: { completed: false, notificationSent: false },
-          include: [{ model: User }],
-        });
-        const now = new Date();
-        for (const s of sessions) {
-          if (!s.date || !s.startTime || !s.User?.email) continue;
-          const sessionTime = new Date(`${s.date}T${s.startTime}`);
-          const nowInTz = new Date(now.toLocaleString('en-US', { timeZone: s.User.timezone || 'UTC' }));
-          if (Math.abs(sessionTime - nowInTz) < 60000) {
-            await transporter.sendMail({
-              from: process.env.EMAIL_USER,
-              to: s.User.email,
-              subject: `Time to study ${s.subject}!`,
-              text: `Your ${s.subject} session starts now (${s.startTime} — ${s.endTime})`,
-            }).catch(console.error);
-            await s.update({ notificationSent: true });
+      cron.schedule('* * * * *', async () => {
+        try {
+          const sessions = await Session.findAll({ where: { completed: false, notificationSent: false }, include: [{ model: User }] });
+          const now = new Date();
+          for (const s of sessions) {
+            if (!s.date || !s.startTime || !s.User?.email) continue;
+            const sessionTime = new Date(`${s.date}T${s.startTime}`);
+            const nowInTz = new Date(now.toLocaleString('en-US', { timeZone: s.User.timezone || 'UTC' }));
+            if (Math.abs(sessionTime - nowInTz) < 60000) {
+              await transporter.sendMail({ from: process.env.EMAIL_USER, to: s.User.email, subject: `Time to study ${s.subject}!`, text: `Your ${s.subject} session starts now` }).catch(console.error);
+              await s.update({ notificationSent: true });
+            }
           }
-        }
-      } catch (e) { console.error('Cron error:', e.message); }
-    });
+        } catch (e) { console.error('Cron error:', e.message); }
+      });
 
-    // ─── Calendar Event Notification Cron ────────────────────────────────────────
-    cron.schedule('* * * * *', async () => {
-      try {
-        const now = new Date();
-        const todayStr = now.toISOString().slice(0, 10);
-        const timeStr  = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        const evs = await CalendarEvent.findAll({
-          where: { date: todayStr, notifyTime: timeStr, notificationSent: false },
-          include: [{ model: User }],
-        });
-        for (const ev of evs) {
-          if (!ev.User?.email) continue;
-          await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: ev.User.email,
-            subject: `Reminder: ${ev.title}`,
-            text: `Your event "${ev.title}" is happening now (${ev.date} at ${ev.notifyTime})${ev.note ? '\n\n' + ev.note : ''}`,
-          }).catch(console.error);
-          await ev.update({ notificationSent: true });
-        }
-      } catch (e) { console.error('Calendar cron error:', e.message); }
-    });
+      cron.schedule('* * * * *', async () => {
+        try {
+          const now = new Date();
+          const todayStr = now.toISOString().slice(0, 10);
+          const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+          const evs = await CalendarEvent.findAll({ where: { date: todayStr, notifyTime: timeStr, notificationSent: false }, include: [{ model: User }] });
+          for (const ev of evs) {
+            if (!ev.User?.email) continue;
+            await transporter.sendMail({ from: process.env.EMAIL_USER, to: ev.User.email, subject: `Reminder: ${ev.title}`, text: `Your event "${ev.title}" is now` }).catch(console.error);
+            await ev.update({ notificationSent: true });
+          }
+        } catch (e) { console.error('Calendar cron error:', e.message); }
+      });
     } else {
       console.log('Email features disabled: EMAIL_USER / EMAIL_PASS not configured');
     }
 
-    // ─── Public Share Routes ──────────────────────────────────────────────────────
     app.get('/api/share/:userId', async (req, res) => {
       try {
         const user = await User.findByPk(req.params.userId, { attributes: ['id','name','dateOfBirth','lifeExpectancy','avatar'] });
@@ -826,4 +808,3 @@ sequelize.sync({ alter: true })
     app.listen(PORT, () => console.log(`LifeClock running on http://localhost:${PORT}`));
   })
   .catch(e => console.error('DB connection failed:', e.message));
-}
