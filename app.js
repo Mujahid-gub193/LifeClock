@@ -249,10 +249,12 @@ let lastMidnightDate = null;
 
 function updateClock() {
   const now = new Date();
-  const h = String(now.getHours()).padStart(2, '0');
+  const rawH = now.getHours();
+  const ampm = rawH >= 12 ? 'PM' : 'AM';
+  const h = String(rawH % 12 || 12).padStart(2, '0');
   const m = String(now.getMinutes()).padStart(2, '0');
   const s = String(now.getSeconds()).padStart(2, '0');
-  document.getElementById('clockTime').textContent = `${h}:${m}:${s}`;
+  document.getElementById('clockTime').textContent = h + ':' + m + ':' + s + ' ' + ampm;
 
   // Update dates once per day (at midnight or first run)
   const today = now.toDateString();
