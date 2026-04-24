@@ -826,3 +826,4 @@ sequelize.sync({ alter: true })
     app.listen(PORT, () => console.log(`LifeClock running on http://localhost:${PORT}`));
   })
   .catch(e => console.error('DB connection failed:', e.message));
+}
