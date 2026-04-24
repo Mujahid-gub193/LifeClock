@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LifeClock Admin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+
+  /* Login Screen */
+  #loginScreen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: #0d1117;
+  }
+  .login-box {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    padding: 2.5rem; width: 360px;
+  }
+  .login-box h1 { font-size: 1.4rem; margin-bottom: .25rem; color: #58a6ff; }
+  .login-box p { color: #8b949e; font-size: .85rem; margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: .8rem; color: #8b949e; margin-bottom: .4rem; }
+  .form-group input {
+    width: 100%; padding: .6rem .8rem; background: #0d1117;
+    border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: .9rem;
+  }
+  .form-group input:focus { outline: none; border-color: #58a6ff; }
+  .btn-login {
+    width: 100%; padding: .7rem; background: #238636; border: none;
+    border-radius: 6px; color: #fff; font-size: .95rem; cursor: pointer; margin-top: .5rem;
+  }
+  .btn-login:hover { background: #2ea043; }
+  #loginError { color: #f85149; font-size: .82rem; margin-top: .75rem; display: none; }
+
+  /* Dashboard */
+  #dashboard { display: none; }
+  .topbar {
+    background: #161b22; border-bottom: 1px solid #30363d;
+    padding: .9rem 2rem; display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: .75rem; }
+  .topbar-left h1 { font-size: 1.1rem; color: #58a6ff; }
+  .badge { background: #388bfd22; color: #58a6ff; border: 1px solid #388bfd44; border-radius: 20px; padding: .15rem .6rem; font-size: .72rem; }
+  .topbar-right { display: flex; align-items: center; gap: 1rem; }
+  .admin-name { color: #8b949e; font-size: .85rem; }
+  .btn-logout { background: none; border: 1px solid #30363d; color: #8b949e; padding: .35rem .8rem; border-radius: 6px; cursor: pointer; font-size: .82rem; }
+  .btn-logout:hover { border-color: #f85149; color: #f85149; }
+
+  .main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 1.25rem;
+  }
+  .stat-card .label { font-size: .78rem; color: #8b949e; margin-bottom: .5rem; }
+  .stat-card .value { font-size: 2rem; font-weight: 700; color: #e6edf3; }
+  .stat-card .sub { font-size: .75rem; color: #3fb950; margin-top: .25rem; }
+
+  /* Users Table */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+  }
+  .section-header h2 { font-size: 1rem; color: #e6edf3; }
+  .search-input {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; padding: .45rem .8rem; font-size: .85rem; width: 220px;
+  }
+  .search-input:focus { outline: none; border-color: #58a6ff; }
+
+  .table-wrap { background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: #0d1117; }
+  th { padding: .75rem 1rem; text-align: left; font-size: .78rem; color: #8b949e; font-weight: 500; border-bottom: 1px solid #30363d; }
+  td { padding: .75rem 1rem; font-size: .85rem; border-bottom: 1px solid #21262d; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1c2128; }
+
+  .role-badge {
+    padding: .2rem .6rem; border-radius: 20px; font-size: .72rem; font-weight: 600;
+  }
+  .role-admin { background: #388bfd22; color: #58a6ff; border: 1px solid #388bfd44; }
+  .role-user  { background: #3fb95022; color: #3fb950; border: 1px solid #3fb95044; }
+
+  .btn-delete {
+    background: none; border: 1px solid #30363d; color: #8b949e;
+    padding: .3rem .65rem; border-radius: 5px; cursor: pointer; font-size: .78rem;
+  }
+  .btn-delete:hover { border-color: #f85149; color: #f85149; }
+  .btn-promote {
+    background: none; border: 1px solid #30363d; color: #8b949e;
+    padding: .3rem .65rem; border-radius: 5px; cursor: pointer; font-size: .78rem; margin-right: .35rem;
+  }
+  .btn-promote:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .empty { text-align: center; color: #8b949e; padding: 3rem; font-size: .9rem; }
+  .loading { text-align: center; color: #8b949e; padding: 2rem; }
+
+  #toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: #238636; color: #fff; padding: .7rem 1.2rem;
+    border-radius: 8px; font-size: .85rem; display: none; z-index: 999;
+  }
+  #toast.error { background: #da3633; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>LifeClock Admin</h1>
+    <p>Sign in with your admin account</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div id="loginError">Invalid credentials or not an admin account.</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>LifeClock Admin</h1>
+      <span class="badge">Admin Panel</span>
+    </div>
+    <div class="topbar-right">
+      <span class="admin-name" id="adminName"></span>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Total Users</div>
+        <div class="value" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">New Today</div>
+        <div class="value" id="statToday">—</div>
+        <div class="sub">registered today</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">New This Week</div>
+        <div class="value" id="statWeek">—</div>
+        <div class="sub">last 7 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Study Sessions</div>
+        <div class="value" id="statSessions">—</div>
+        <div class="sub">total logged</div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="section-header">
+      <h2>All Users</h2>
+      <input class="search-input" type="text" id="searchInput" placeholder="Search by name or email..." oninput="filterUsers()">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody">
+          <tr><td colspan="6" class="loading">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let token = localStorage.getItem('adminToken');
+  let allUsers = [];
+
+  if (token) tryLoadDashboard();
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const pass  = document.getElementById('loginPassword').value;
+    document.getElementById('loginError').style.display = 'none';
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass })
+      });
+      const d = await r.json();
+      if (!r.ok || d.user?.role !== 'admin') {
+        document.getElementById('loginError').style.display = 'block';
+        return;
+      }
+      token = d.token;
+      localStorage.setItem('adminToken', token);
+      document.getElementById('adminName').textContent = d.user.name;
+      showDashboard();
+    } catch {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
+  async function tryLoadDashboard() {
+    try {
+      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      const u = await r.json();
+      if (!r.ok || u.role !== 'admin') { localStorage.removeItem('adminToken'); return; }
+      document.getElementById('adminName').textContent = u.name;
+      showDashboard();
+    } catch { localStorage.removeItem('adminToken'); }
+  }
+
+  function showDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadStats();
+    loadUsers();
+  }
+
+  async function loadStats() {
+    const r = await fetch('/api/admin/stats', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    document.getElementById('statTotal').textContent    = d.totalUsers;
+    document.getElementById('statToday').textContent    = d.newToday;
+    document.getElementById('statWeek').textContent     = d.newWeek;
+    document.getElementById('statSessions').textContent = d.totalSessions;
+  }
+
+  async function loadUsers() {
+    const r = await fetch('/api/admin/users', { headers: { Authorization: 'Bearer ' + token } });
+    allUsers = await r.json();
+    renderUsers(allUsers);
+  }
+
+  function renderUsers(users) {
+    const tbody = document.getElementById('usersBody');
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No users found</td></tr>'; return; }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td style="color:#8b949e">#${u.id}</td>
+        <td>${u.name}</td>
+        <td style="color:#8b949e">${u.email}</td>
+        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+        <td style="color:#8b949e">${new Date(u.createdAt).toLocaleDateString()}</td>
+        <td>
+          ${u.role !== 'admin'
+            ? `<button class="btn-promote" onclick="promoteUser(${u.id})">Make Admin</button>`
+            : `<button class="btn-promote" onclick="demoteUser(${u.id})">Remove Admin</button>`}
+          <button class="btn-delete" onclick="deleteUser(${u.id}, '${u.name}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterUsers() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    renderUsers(allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+  }
+
+  async function deleteUser(id, name) {
+    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+    const r = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+    if (r.ok) { showToast('User deleted'); loadUsers(); loadStats(); }
+    else showToast('Failed to delete', true);
+  }
+
+  async function promoteUser(id) {
+    const r = await fetch(`/api/admin/users/${id}/role`, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'admin' })
+    });
+    if (r.ok) { showToast('User promoted to admin'); loadUsers(); }
+    else showToast('Failed', true);
+  }
+
+  async function demoteUser(id) {
+    const r = await fetch(`/api/admin/users/${id}/role`, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'user' })
+    });
+    if (r.ok) { showToast('Admin role removed'); loadUsers(); }
+    else showToast('Failed', true);
+  }
+
+  function logout() {
+    localStorage.removeItem('adminToken');
+    location.reload();
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = isError ? 'error' : '';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+  });
+</script>
+</body>
+</html>

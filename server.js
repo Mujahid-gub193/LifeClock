@@ -54,6 +54,7 @@ const User = sequelize.define('User', {
   googleId:      { type: DataTypes.STRING },
   resetToken:    { type: DataTypes.STRING },
   resetExpiry:   { type: DataTypes.BIGINT },
+  role:          { type: DataTypes.STRING, defaultValue: 'user' },
 });
 
 const Session = sequelize.define('Session', {
@@ -232,6 +233,20 @@ const auth = async (req, res, next) => {
   } catch {
     res.status(401).json({ message: 'Invalid token' });
   }
+
+const adminAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ message: 'No token' });
+    const { userId } = jwt.verify(token, JWT_SECRET);
+    req.user = await User.findByPk(userId);
+    if (!req.user) return res.status(401).json({ message: 'User not found' });
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
+    next();
+  } catch {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};
 };
 
 app.get('/api/health', async (req, res) => {
@@ -254,7 +269,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed, dateOfBirth });
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-    res.status(201).json({ token, user: { id: user.id, name, email, dateOfBirth, settings: { lifeExpectancy: user.lifeExpectancy, theme: user.theme }, timezone: user.timezone } });
+    res.status(201).json({ token, user: { id: user.id, name, email, email, dateOfBirth, role: user.role, settings: { lifeExpectancy: user.lifeExpectancy, theme: user.theme }, timezone: user.timezone } });
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
@@ -265,13 +280,13 @@ app.post('/api/auth/login', async (req, res) => {
     if (!user || !await bcrypt.compare(password, user.password))
       return res.status(401).json({ message: 'Invalid credentials' });
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, dateOfBirth: user.dateOfBirth, settings: { lifeExpectancy: user.lifeExpectancy, theme: user.theme }, timezone: user.timezone } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, dateOfBirth: user.dateOfBirth, role: user.role, settings: { lifeExpectancy: user.lifeExpectancy, theme: user.theme }, timezone: user.timezone } });
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
 app.get('/api/auth/me', auth, (req, res) => {
   const u = req.user;
-  res.json({ id: u.id, name: u.name, email: u.email, dateOfBirth: u.dateOfBirth, avatar: u.avatar, settings: { lifeExpectancy: u.lifeExpectancy, theme: u.theme }, timezone: u.timezone });
+  res.json({ id: u.id, name: u.name, email: u.email, dateOfBirth: u.dateOfBirth, avatar: u.avatar, role: u.role, settings: { lifeExpectancy: u.lifeExpectancy, theme: u.theme }, timezone: u.timezone });
 });
 
 // ─── Google OAuth ─────────────────────────────────────────────────────────────
@@ -693,6 +708,51 @@ app.put('/api/user/password', auth, async (req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
+// --- Admin Routes ------------------------------------------------------------
+app.get('/admin', (req, res) => res.sendFile('admin.html', { root: '.' }));
+
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
+  try {
+    const totalUsers    = await User.count();
+    const totalSessions = await Session.count();
+    const today = new Date().toISOString().slice(0,10);
+    const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
+    const newToday = await User.count({ where: { createdAt: { [require('sequelize').Op.gte]: new Date(today) } } });
+    const newWeek  = await User.count({ where: { createdAt: { [require('sequelize').Op.gte]: new Date(weekAgo) } } });
+    res.json({ totalUsers, totalSessions, newToday, newWeek });
+  } catch(e) { res.status(500).json({ message: e.message }); }
+});
+
+app.get('/api/admin/users', adminAuth, async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id','name','email','role','createdAt','dateOfBirth'],
+      order: [['createdAt','DESC']]
+    });
+    res.json(users);
+  } catch(e) { res.status(500).json({ message: e.message }); }
+});
+
+app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (req.user.id == id) return res.status(400).json({ message: 'Cannot delete yourself' });
+    await Session.destroy({ where: { userId: id } });
+    await Note.destroy({ where: { userId: id } });
+    await User.destroy({ where: { id } });
+    res.json({ message: 'User deleted' });
+  } catch(e) { res.status(500).json({ message: e.message }); }
+});
+
+app.put('/api/admin/users/:id/role', adminAuth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Not found' });
+    await user.update({ role: req.body.role });
+    res.json({ message: 'Role updated' });
+  } catch(e) { res.status(500).json({ message: e.message }); }
+});
+
 sequelize.sync({ alter: true })
   .then(() => {
     console.log('PostgreSQL connected & tables synced');
