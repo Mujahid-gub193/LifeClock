@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reading List — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .rl-layout { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.25rem; }
+    .rl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Stats */
+    .rl-stats { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .stat-pill { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .45rem .9rem; font-size: .82rem; font-weight: 600; }
+    .stat-pill span { color: var(--accent-blue); font-weight: 800; margin-right: .25rem; }
+
+    /* Tabs */
+    .rl-tabs { display: flex; gap: .4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+
+    /* Add form */
+    .rl-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; display: none; }
+    .rl-form.open { display: block; }
+    .rl-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    .rl-form-grid .full { grid-column: 1 / -1; }
+
+    /* Book list */
+    .rl-list { display: flex; flex-direction: column; gap: .75rem; }
+    .book-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+      display: grid; grid-template-columns: auto 1fr auto;
+      gap: .75rem; align-items: start;
+    }
+    .book-spine {
+      width: 8px; border-radius: 4px; align-self: stretch; min-height: 60px;
+    }
+    .book-spine.want    { background: var(--text-secondary); }
+    .book-spine.reading { background: var(--accent-blue); }
+    .book-spine.done    { background: var(--accent-green); }
+    .book-info { display: flex; flex-direction: column; gap: .25rem; }
+    .book-title { font-size: .95rem; font-weight: 700; }
+    .book-author { font-size: .82rem; color: var(--text-secondary); }
+    .book-meta { display: flex; gap: .6rem; flex-wrap: wrap; font-size: .75rem; color: var(--text-secondary); margin-top: .2rem; }
+    .book-badge {
+      font-size: .7rem; font-weight: 700; padding: .15rem .5rem;
+      border-radius: 99px; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-want    { background: var(--bg-input); color: var(--text-secondary); }
+    .badge-reading { background: rgba(56,139,253,.15); color: var(--accent-blue); }
+    .badge-done    { background: rgba(63,185,80,.15);  color: var(--accent-green); }
+    .book-rating { color: #f0a500; font-size: .9rem; letter-spacing: 1px; }
+    .book-notes { font-size: .78rem; color: var(--text-secondary); font-style: italic; margin-top: .2rem; }
+    .book-actions { display: flex; flex-direction: column; gap: .35rem; align-items: flex-end; }
+    .status-select { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-primary); font-size: .75rem; padding: .25rem .4rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="rl-layout">
+    <div class="rl-header">
+      <div class="page-title">Reading List</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Add Book</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="rl-stats" id="rlStats"></div>
+
+    <!-- Add/Edit Form -->
+    <div class="rl-form" id="rlForm">
+      <div class="rl-form-grid">
+        <div class="full">
+          <label class="setting-label">Title *</label>
+          <input type="text" id="bTitle" class="input" placeholder="Book title" required>
+        </div>
+        <div>
+          <label class="setting-label">Author</label>
+          <input type="text" id="bAuthor" class="input" placeholder="Author name">
+        </div>
+        <div>
+          <label class="setting-label">Genre</label>
+          <select id="bGenre" class="input">
+            <option>General</option><option>Fiction</option><option>Non-Fiction</option>
+            <option>Science</option><option>History</option><option>Biography</option>
+            <option>Self-Help</option><option>Technology</option><option>Philosophy</option>
+            <option>Religion</option><option>Poetry</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Status</label>
+          <select id="bStatus" class="input">
+            <option value="want">Want to Read</option>
+            <option value="reading">Currently Reading</option>
+            <option value="done">Finished</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Pages</label>
+          <input type="number" id="bPages" class="input" placeholder="e.g. 320" min="1">
+        </div>
+        <div>
+          <label class="setting-label">Rating (1–5)</label>
+          <input type="number" id="bRating" class="input" placeholder="1–5" min="1" max="5">
+        </div>
+        <div>
+          <label class="setting-label">Start Date</label>
+          <input type="date" id="bStart" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Finish Date</label>
+          <input type="date" id="bFinish" class="input">
+        </div>
+        <div class="full">
+          <label class="setting-label">Notes / Review</label>
+          <textarea id="bNotes" class="input textarea" rows="2" placeholder="Your thoughts..."></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveBookBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelBookBtn">Cancel</button>
+      </div>
+      <p id="bookErr" class="form-error hidden"></p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="rl-tabs">
+      <button class="btn btn-xs active" data-tab="all">All</button>
+      <button class="btn btn-xs" data-tab="want">Want to Read</button>
+      <button class="btn btn-xs" data-tab="reading">Reading</button>
+      <button class="btn btn-xs" data-tab="done">Finished</button>
+    </div>
+
+    <!-- Book List -->
+    <div class="rl-list" id="rlList">
+      <p class="empty-msg">No books yet — add your first book!</p>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Reading pipeline, progress, and review records.
+  </footer>
+
+  <script src="reading.js"></script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeClock — Visualize Your Time</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="apple-touch-icon" href="/assets/icon-512.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/icon-512.svg">
+  <meta property="og:title" content="LifeClock — Visualize Your Time">
+  <meta property="og:description" content="Your Life. Your Time.">
+  <meta property="og:image" content="/assets/og-image.svg">
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- ── Top Bar ── -->
+  <header class="topbar">
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="36"></div>
+    <div class="topbar-right">
+      <button id="themeToggleBtn" class="btn btn-ghost" title="Toggle theme">Light</button>
+      <span id="userGreeting" class="user-greeting hidden"></span>
+      <button id="accountBtn" class="btn btn-ghost hidden">Account</button>
+      <button id="authBtn" class="btn btn-primary">Login / Sign Up</button>
+      <button id="logoutBtn" class="btn btn-ghost hidden">Logout</button>
+    </div>
+  </header>
+
+  <!-- ── Feature Nav ── -->
+  <nav class="feature-nav">
+    <a href="calendar.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="feature-label">Calendar</span>
+    </a>
+    <a href="analytics.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span class="feature-label">Study Analytics</span>
+    </a>
+    <a href="goals.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
+      <span class="feature-label">Goals</span>
+    </a>
+    <a href="mood.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
+      <span class="feature-label">Mood & Journal</span>
+    </a>
+    <a href="habits.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      <span class="feature-label">Habits</span>
+    </a>
+    <a href="countdowns.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <span class="feature-label">Countdowns</span>
+    </a>
+    <a href="timeaudit.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+      <span class="feature-label">Time Audit</span>
+    </a>
+    <a href="milestones.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+      <span class="feature-label">Milestones</span>
+    </a>
+    <a href="sleep.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      <span class="feature-label">Sleep</span>
+    </a>
+    <a href="reminders.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      <span class="feature-label">Reminders</span>
+    </a>
+    <a href="weekly-review.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      <span class="feature-label">Weekly Review</span>
+    </a>
+    <a href="notes.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+      <span class="feature-label">Notes</span>
+    </a>
+    <a href="reading.html" class="feature-card">
+      <span class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+      <span class="feature-label">Reading</span>
+    </a>
+  </nav>
+
+  <!-- ── Main Layout ── -->
+  <div class="app-layout">
+
+    <!-- ══ LEFT PANEL ══ -->
+    <aside class="panel panel-left" id="panelLeft">
+
+      <!-- Pomodoro Timer -->
+      <section class="card" id="pomodoroCard">
+        <h3 class="card-title">Pomodoro</h3>
+        <div class="pomodoro-wrap">
+          <div class="pomo-mode-row">
+            <button class="pomo-mode-btn active" data-mode="work">Work</button>
+            <button class="pomo-mode-btn" data-mode="break">Break</button>
+          </div>
+          <div class="pomo-display" id="pomoDisplay">25:00</div>
+          <div class="pomo-label" id="pomoLabel">Focus Session</div>
+          <div class="pomo-controls">
+            <button class="btn btn-primary" id="pomoStartBtn">Start</button>
+            <button class="btn btn-ghost" id="pomoResetBtn">Reset</button>
+          </div>
+          <div class="pomo-count">Sessions today: <span id="pomoCount">0</span></div>
+        </div>
+      </section>
+
+      <!-- Stopwatch -->
+      <section class="card">
+        <h3 class="card-title">Stopwatch</h3>
+        <div class="stopwatch-timers" id="stopwatchTimers">
+          <p class="empty-msg">No active timers</p>
+        </div>
+        <button class="btn btn-sm btn-accent" id="addTimerBtn">+ New Timer</button>
+      </section>
+
+      <!-- Plan a Session -->
+      <section class="card">
+        <h3 class="card-title">Plan a Session</h3>
+        <form id="planForm" class="plan-form">
+          <input type="text" id="planSubject" placeholder="Subject (e.g. Physics)" class="input" required>
+          <input type="date" id="planDate" class="input" required>
+          <div class="row-2">
+            <input type="time" id="planStart" class="input" required>
+            <input type="time" id="planEnd" class="input" required>
+          </div>
+          <textarea id="planNotes" placeholder="Notes (optional)" class="input textarea" rows="2"></textarea>
+          <button type="submit" class="btn btn-primary w-full">Schedule</button>
+        </form>
+      </section>
+
+      <!-- Planned Sessions -->
+      <section class="card">
+        <h3 class="card-title">Planned Sessions</h3>
+        <div id="plannedList" class="session-list">
+          <p class="empty-msg">No sessions planned</p>
+        </div>
+      </section>
+
+      <!-- AI Study Suggestions -->
+      <section class="card" id="aiSuggestCard">
+        <h3 class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          AI Suggestions
+          <button class="btn btn-xs btn-ghost" id="refreshSuggestBtn">Refresh</button>
+        </h3>
+        <div id="aiSuggestions"><p class="empty-msg">Log some sessions to get suggestions</p></div>
+      </section>
+
+      <!-- Analytics -->
+      <section class="card">
+        <h3 class="card-title">Study Analytics</h3>
+        <a href="analytics.html" class="btn btn-primary w-full">Open Analytics →</a>
+      </section>
+    </aside>
+
+    <!-- ══ CENTER PANEL ══ -->
+    <main class="panel panel-center" id="panelCenter">
+
+      <!-- Clock + Date -->
+      <section class="clock-section">
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-dates">
+          <div class="date-line"><span class="date-label">Gregorian</span><span id="dateGregorian">—</span></div>
+          <div class="date-line"><span class="date-label">Bengali</span><span id="dateBengali">—</span></div>
+          <div class="date-line"><span class="date-label">Hijri</span><span id="dateHijri">—</span></div>
+        </div>
+      </section>
+
+      <!-- Daily Quote -->
+      <section class="card quote-card" id="quoteCard">
+        <div class="quote-text" id="quoteText">Loading quote...</div>
+        <div class="quote-author" id="quoteAuthor"></div>
+      </section>
+
+      <!-- Life Progress -->
+      <section class="card life-progress-card" id="lifeProgressSection">
+        <div class="life-age" id="lifeAge">Set your date of birth in settings</div>
+        <div class="life-pct" id="lifePct"></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="life-pct-labels">
+          <span id="pctPassed">0% passed</span>
+          <span id="pctRemaining">100% remaining</span>
+        </div>
+      </section>
+
+      <!-- Center Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="calendar">Life Calendar</button>
+        <button class="tab-btn" data-tab="planner">Planner</button>
+      </div>
+
+      <!-- TAB: Life Calendar -->
+      <section class="tab-content active" id="tab-calendar">
+        <div class="calendar-toolbar">
+          <div class="view-toggle">
+            <button class="btn btn-xs active" data-view="weekly">Weekly</button>
+            <button class="btn btn-xs" data-view="monthly">Monthly</button>
+            <button class="btn btn-xs" data-view="yearly">Yearly</button>
+          </div>
+          <div class="cal-legend">
+            <span class="legend-dot past"></span>Past
+            <span class="legend-dot current"></span>Current
+            <span class="legend-dot future"></span>Future
+            <span class="legend-dot noted"></span>Has note
+          </div>
+        </div>
+        <div class="calendar-scroll-wrap">
+          <canvas id="lifeCalendarCanvas" class="life-canvas"></canvas>
+          <div id="calTooltip" class="cal-tooltip hidden"></div>
+        </div>
+      </section>
+
+      <!-- TAB: Planner -->
+      <section class="tab-content" id="tab-planner">
+        <div class="planner-subtabs">
+          <button class="subtab-btn active" data-subtab="weekly">Weekly</button>
+          <button class="subtab-btn" data-subtab="monthly">Monthly</button>
+        </div>
+
+        <!-- Weekly Planner -->
+        <div class="subtab-content active" id="subtab-weekly">
+          <div class="planner-nav">
+            <button class="btn btn-xs" id="prevWeek">← Prev</button>
+            <span id="weekLabel" class="planner-label"></span>
+            <button class="btn btn-xs" id="nextWeek">Next →</button>
+          </div>
+          <div class="weekly-grid" id="weeklyGrid"></div>
+        </div>
+
+        <!-- Monthly Planner -->
+        <div class="subtab-content" id="subtab-monthly">
+          <div class="planner-nav">
+            <button class="btn btn-xs" id="prevMonth">← Prev</button>
+            <span id="monthLabel" class="planner-label"></span>
+            <button class="btn btn-xs" id="nextMonth">Next →</button>
+          </div>
+          <div class="monthly-grid" id="monthlyGrid"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══ RIGHT PANEL ══ -->
+    <aside class="panel panel-right" id="panelRight">
+
+      <!-- Streak Tracker -->
+      <section class="card" id="streakCard">
+        <h3 class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Habit Streaks
+          <a href="habits.html" class="btn btn-xs btn-ghost">View All</a>
+        </h3>
+        <div id="streakList" class="streak-list">
+          <p class="empty-msg">No habits yet</p>
+        </div>
+      </section>
+
+      <!-- User Profile -->
+      <section class="card" id="profileCard">
+        <div id="profileInfo" class="profile-info"></div>
+      </section>
+
+      <!-- Stats Summary -->
+      <section class="card">
+        <h3 class="card-title">Life Stats</h3>
+        <div class="stats-list" id="statsList">
+          <div class="stat-row"><span>Age</span><span id="statAge">—</span></div>
+          <div class="stat-row"><span>Days Lived</span><span id="statDays">—</span></div>
+          <div class="stat-row"><span>Weeks Lived</span><span id="statWeeks">—</span></div>
+          <div class="stat-row"><span>Months Lived</span><span id="statMonths">—</span></div>
+          <div class="stat-row"><span>Years Remaining</span><span id="statYearsLeft">—</span></div>
+          <div class="stat-row"><span>Days Remaining</span><span id="statDaysLeft">—</span></div>
+        </div>
+      </section>
+
+      <!-- Completed Sessions -->
+      <section class="card">
+        <h3 class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Study Log
+          <button class="btn btn-xs btn-ghost" id="exportCsvBtn">Export CSV</button>
+        </h3>
+        <div id="studyLog" class="session-list">
+          <p class="empty-msg">No completed sessions</p>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ── Mobile Tab Bar ── -->
+  <nav class="mobile-tabbar">
+    <button class="mobile-tab active" data-panel="left">Study</button>
+    <button class="mobile-tab" data-panel="center">Clock</button>
+    <button class="mobile-tab" data-panel="right">Settings</button>
+  </nav>
+
+  <!-- ── Auth Modal ── -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal">
+      <button class="modal-close" id="closeAuthModal">×</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-form="login">Login</button>
+        <button class="modal-tab" data-form="register">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="auth-form">
+        <h2>Welcome back</h2>
+        <a href="/api/auth/google" class="btn btn-ghost w-full" style="gap:.5rem;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </a>
+        <div style="display:flex;align-items:center;gap:.5rem;color:var(--text-secondary);font-size:.75rem"><hr style="flex:1;border-color:var(--border)">or<hr style="flex:1;border-color:var(--border)"></div>
+        <input type="email" id="loginEmail" placeholder="Email" class="input" required>
+        <input type="password" id="loginPassword" placeholder="Password" class="input" required>
+        <button type="submit" class="btn btn-primary w-full">Sign In</button>
+        <p style="text-align:center;font-size:.8rem"><a href="#" id="forgotPasswordLink" style="color:var(--accent-blue)">Forgot password?</a></p>
+        <p id="loginError" class="form-error hidden"></p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="auth-form hidden">
+        <h2>Create account</h2>
+        <a href="/api/auth/google" class="btn btn-ghost w-full" style="gap:.5rem;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </a>
+        <div style="display:flex;align-items:center;gap:.5rem;color:var(--text-secondary);font-size:.75rem"><hr style="flex:1;border-color:var(--border)">or<hr style="flex:1;border-color:var(--border)"></div>
+        <input type="text" id="regName" placeholder="Full Name" class="input" required>
+        <input type="email" id="regEmail" placeholder="Email" class="input" required>
+        <input type="password" id="regPassword" placeholder="Password (min 6 chars)" class="input" required>
+        <div class="input-group">
+          <label class="input-label">Date of Birth <span class="required">*</span></label>
+          <input type="date" id="regDOB" class="input" required>
+          <small class="input-hint">Required — drives your entire life calendar</small>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Create Account</button>
+        <p id="regError" class="form-error hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Timer Name Modal ── -->
+  <div class="modal-overlay hidden" id="timerModal">
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeTimerModal">×</button>
+      <h3>New Timer</h3>
+      <input type="text" id="timerSubjectInput" placeholder="Subject name" class="input">
+      <button class="btn btn-primary w-full mt-1" id="confirmTimerBtn">Start Timer</button>
+    </div>
+  </div>
+
+  <!-- ── Note Modal ── -->
+  <div class="modal-overlay hidden" id="noteModal">
+    <div class="modal">
+      <button class="modal-close" id="closeNoteModal">×</button>
+      <h3 id="noteModalTitle">Add Memory / Note</h3>
+      <p id="noteModalRange" class="text-secondary note-range"></p>
+      <textarea id="noteContent" class="input textarea" rows="5" placeholder="Write a memory or note for this period..."></textarea>
+      <button class="btn btn-primary w-full mt-1" id="saveNoteBtn">Save Note</button>
+    </div>
+  </div>
+
+  <!-- ── Day Plan Modal ── -->
+  <div class="modal-overlay hidden" id="dayModal">
+    <div class="modal">
+      <button class="modal-close" id="closeDayModal">×</button>
+      <h3 id="dayModalTitle">Plan for Day</h3>
+      <textarea id="dayContent" class="input textarea" rows="6" placeholder="Write your plan for this day..."></textarea>
+      <button class="btn btn-primary w-full mt-1" id="saveDayBtn">Save</button>
+    </div>
+  </div>
+
+  <!-- ── Migrate Data Modal ── -->
+  <div class="modal-overlay hidden" id="migrateModal">
+    <div class="modal modal-sm">
+      <h3>Migrate Local Data?</h3>
+      <p class="text-secondary">You have local data (sessions, notes). Would you like to sync it to your account?</p>
+      <div class="row-2 mt-1">
+        <button class="btn btn-primary" id="migrateYes">Yes, migrate</button>
+        <button class="btn btn-ghost" id="migrateNo">No, discard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Forgot Password Modal ── -->
+  <div class="modal-overlay hidden" id="forgotModal">
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeForgotModal">×</button>
+      <h3>Reset Password</h3>
+      <p class="text-secondary" style="font-size:.82rem;margin:.5rem 0 1rem">Enter your email and we'll send a reset link.</p>
+      <input type="email" id="forgotEmail" class="input" placeholder="Your email address">
+      <button class="btn btn-primary w-full mt-1" id="sendResetBtn">Send Reset Link</button>
+      <p id="forgotMsg" class="hidden" style="font-size:.8rem;margin-top:.5rem;text-align:center"></p>
+    </div>
+  </div>
+
+  <!-- ── Account Modal ── -->
+  <div class="modal-overlay hidden" id="accountModal">
+    <div class="modal modal-account">
+      <button class="modal-close" id="closeAccountModal">×</button>
+      <h2 class="modal-title">Account Settings</h2>
+
+      <!-- Avatar -->
+      <div class="account-avatar-wrap">
+        <div class="account-avatar" id="accountAvatarPreview"></div>
+        <label class="btn btn-sm btn-ghost" style="cursor:pointer">
+          Change Photo
+          <input type="file" id="avatarInput" accept="image/*" style="display:none">
+        </label>
+      </div>
+
+      <!-- Profile Info -->
+      <div class="account-section">
+        <h4 class="account-section-title">Profile</h4>
+        <div class="setting-row">
+          <label class="setting-label">Full Name</label>
+          <input type="text" id="accName" class="input">
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">Email</label>
+          <input type="email" id="accEmail" class="input" disabled>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">Date of Birth</label>
+          <input type="date" id="accDOB" class="input">
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">Life Expectancy (yrs)</label>
+          <input type="number" id="accLE" class="input" min="1" max="120">
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">Timezone</label>
+          <select id="accTZ" class="input"></select>
+        </div>
+        <button class="btn btn-primary w-full" id="saveProfileBtn">Save Profile</button>
+        <p id="profileMsg" class="form-error hidden"></p>
+      </div>
+
+      <!-- Change Password -->
+      <div class="account-section">
+        <h4 class="account-section-title">Change Password</h4>
+        <div class="setting-row">
+          <label class="setting-label">Current Password</label>
+          <input type="password" id="accCurPass" class="input" placeholder="Current password">
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">New Password</label>
+          <input type="password" id="accNewPass" class="input" placeholder="New password (min 6)">
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">Confirm New Password</label>
+          <input type="password" id="accConfPass" class="input" placeholder="Confirm new password">
+        </div>
+        <button class="btn btn-primary w-full" id="savePasswordBtn">Update Password</button>
+        <p id="passwordMsg" class="form-error hidden"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Professional life planning, tracking, and review.
+  </footer>
+
+  <script src="app.js"></script>
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>

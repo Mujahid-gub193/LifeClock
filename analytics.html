@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Analytics — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .an-layout { max-width: 1100px; margin: 2rem auto; padding: 0 1rem 3rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; }
+    .an-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Range filter */
+    .an-filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+    .an-custom { display: flex; gap: .4rem; align-items: center; }
+
+    /* KPI cards */
+    .an-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1.5rem; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+      display: flex; flex-direction: column; gap: .25rem;
+    }
+    .kpi-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent-blue); line-height: 1.1; }
+    .kpi-sub   { font-size: .75rem; color: var(--text-secondary); }
+
+    /* Chart grid */
+    .an-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .an-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    @media (max-width: 800px) { .an-grid-2, .an-grid-3 { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+    }
+    .chart-card-title { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .chart-h-sm  { height: 180px; }
+    .chart-h-md  { height: 220px; }
+    .chart-h-lg  { height: 260px; }
+
+    /* Heatmap */
+    .heatmap-wrap { overflow-x: auto; }
+    .heatmap-grid { display: flex; gap: 3px; }
+    .heatmap-col  { display: flex; flex-direction: column; gap: 3px; }
+    .hm-cell {
+      width: 13px; height: 13px; border-radius: 2px;
+      background: var(--color-future); flex-shrink: 0;
+    }
+    .hm-cell.today { outline: 2px solid var(--accent-current); outline-offset: 1px; }
+    .hm-month-labels { display: flex; gap: 3px; margin-bottom: 3px; font-size: 9px; color: var(--text-secondary); }
+    .hm-month-lbl { width: 13px; text-align: center; }
+
+    /* Subject table */
+    .subject-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .subject-table th { text-align: left; padding: .4rem .5rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+    .subject-table td { padding: .5rem .5rem; border-bottom: 1px solid var(--border); }
+    .subject-table tr:last-child td { border-bottom: none; }
+    .subject-bar-track { height: 5px; background: var(--bg-input); border-radius: 99px; margin-top: 3px; }
+    .subject-bar-fill  { height: 100%; border-radius: 99px; background: var(--accent-blue); }
+
+    /* Session log */
+    .session-log { display: flex; flex-direction: column; gap: .4rem; max-height: 320px; overflow-y: auto; }
+    .log-item { display: grid; grid-template-columns: 1fr auto auto; gap: .5rem; align-items: center; padding: .5rem .6rem; background: var(--bg-input); border-radius: var(--radius); font-size: .8rem; }
+    .log-subject { font-weight: 700; }
+    .log-date    { color: var(--text-secondary); font-size: .72rem; }
+    .log-dur     { font-weight: 700; color: var(--accent-blue); white-space: nowrap; }
+
+    /* Best day badge */
+    .best-day { font-size: .85rem; font-weight: 700; color: var(--accent-current); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="an-layout">
+    <div class="an-header">
+      <div class="page-title">Study Analytics</div>
+    </div>
+
+    <!-- Range filters -->
+    <div class="an-filters">
+      <button class="btn btn-xs active" data-range="7">7 Days</button>
+      <button class="btn btn-xs" data-range="30">30 Days</button>
+      <button class="btn btn-xs" data-range="90">90 Days</button>
+      <button class="btn btn-xs" data-range="365">1 Year</button>
+      <button class="btn btn-xs" data-range="all">All Time</button>
+      <button class="btn btn-xs" data-range="custom">Custom</button>
+      <div class="an-custom hidden" id="customRange">
+        <input type="date" id="rangeFrom" class="input input-sm" style="width:130px">
+        <span style="color:var(--text-secondary);font-size:.8rem">to</span>
+        <input type="date" id="rangeTo" class="input input-sm" style="width:130px">
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="an-kpis" id="anKpis"></div>
+
+    <!-- Row 1: Daily bar + Subject donut -->
+    <div class="an-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Daily Study Hours</div>
+        <div class="chart-h-md"><canvas id="dailyBar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Time by Subject</div>
+        <div class="chart-h-md"><canvas id="subjectDonut"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 2: Weekly trend + Hour of day + Day of week -->
+    <div class="an-grid-3">
+      <div class="chart-card">
+        <div class="chart-card-title">Weekly Totals</div>
+        <div class="chart-h-sm"><canvas id="weeklyLine"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Study by Day of Week</div>
+        <div class="chart-h-sm"><canvas id="dowBar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Cumulative Hours</div>
+        <div class="chart-h-sm"><canvas id="cumulLine"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 3: Heatmap -->
+    <div class="chart-card" style="margin-bottom:1rem">
+      <div class="chart-card-title">Study Heatmap — Last 16 Weeks</div>
+      <div class="heatmap-wrap">
+        <div class="hm-month-labels" id="hmMonthLabels"></div>
+        <div class="heatmap-grid" id="hmGrid"></div>
+      </div>
+    </div>
+
+    <!-- Row 4: Subject table + Recent log -->
+    <div class="an-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Subject Breakdown</div>
+        <table class="subject-table" id="subjectTable">
+          <thead><tr><th>Subject</th><th>Hours</th><th>Sessions</th><th>Avg/Session</th></tr></thead>
+          <tbody id="subjectTbody"></tbody>
+        </table>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Recent Sessions</div>
+        <div class="session-log" id="sessionLog"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Study performance analytics and historical trends.
+  </footer>
+
+  <script src="analytics.js"></script>
+</body>
+</html>

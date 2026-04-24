@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleep Tracker — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .sl-layout { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.25rem; }
+    .sl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Stats */
+    .sl-stats { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .stat-pill { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .45rem .9rem; font-size: .82rem; font-weight: 600; }
+    .stat-pill span { color: var(--accent-blue); font-weight: 800; margin-right: .25rem; }
+
+    /* Form */
+    .sl-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; display: none; }
+    .sl-form.open { display: block; }
+    .sl-form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: .75rem; }
+    .sl-form-grid .full { grid-column: 1 / -1; }
+
+    /* Chart */
+    .sl-chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem; }
+    .sl-chart-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .sl-chart-wrap { height: 160px; }
+
+    /* Log */
+    .sl-log { display: flex; flex-direction: column; gap: .6rem; }
+    .sl-entry {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+      display: grid; grid-template-columns: 1fr auto auto; gap: .75rem; align-items: center;
+    }
+    .sl-date { font-weight: 700; font-size: .9rem; }
+    .sl-times { font-size: .78rem; color: var(--text-secondary); }
+    .sl-dur {
+      font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .sl-dur.good  { color: var(--accent-green); }
+    .sl-dur.ok    { color: var(--accent-current); }
+    .sl-dur.bad   { color: var(--accent-red); }
+    .sl-quality { font-size: 1rem; letter-spacing: 1px; color: #f0a500; }
+    .sl-notes { font-size: .75rem; color: var(--text-secondary); font-style: italic; grid-column: 1 / -1; margin-top: -.3rem; }
+    .sl-actions { display: flex; gap: .35rem; }
+
+    /* Quality picker */
+    .quality-row { display: flex; gap: .4rem; align-items: center; }
+    .quality-btn { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); padding: .3rem .6rem; font-size: .85rem; cursor: pointer; transition: all .15s; }
+    .quality-btn.active { background: #f0a500; border-color: #f0a500; color: #000; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="sl-layout">
+    <div class="sl-header">
+      <div class="page-title">Sleep Tracker</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Log Sleep</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="sl-stats" id="slStats"></div>
+
+    <!-- Add Form -->
+    <div class="sl-form" id="slForm">
+      <div class="sl-form-grid">
+        <div>
+          <label class="setting-label">Date *</label>
+          <input type="date" id="sDate" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Bedtime</label>
+          <input type="time" id="sBedtime" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Wake Time</label>
+          <input type="time" id="sWake" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Duration (hrs) — auto-calculated</label>
+          <input type="number" id="sDuration" class="input" step="0.1" min="0" max="24" placeholder="e.g. 7.5">
+        </div>
+        <div class="full">
+          <label class="setting-label">Sleep Quality</label>
+          <div class="quality-row" id="qualityPicker">
+            <button class="quality-btn" data-q="1"> 1</button>
+            <button class="quality-btn" data-q="2"> 2</button>
+            <button class="quality-btn" data-q="3"> 3</button>
+            <button class="quality-btn" data-q="4"> 4</button>
+            <button class="quality-btn" data-q="5"> 5</button>
+          </div>
+        </div>
+        <div class="full">
+          <label class="setting-label">Notes</label>
+          <input type="text" id="sNotes" class="input" placeholder="e.g. Woke up twice, felt rested...">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveSleepBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelSleepBtn">Cancel</button>
+      </div>
+      <p id="sleepErr" class="form-error hidden"></p>
+    </div>
+
+    <!-- Chart -->
+    <div class="sl-chart-card">
+      <div class="sl-chart-title">Last 14 nights — Sleep Duration (hrs)</div>
+      <div class="sl-chart-wrap"><canvas id="sleepChart"></canvas></div>
+    </div>
+
+    <!-- Log -->
+    <div class="sl-log" id="slLog">
+      <p class="empty-msg">No sleep logs yet</p>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Sleep duration and quality tracking.
+  </footer>
+
+  <script src="sleep.js"></script>
+</body>
+</html>

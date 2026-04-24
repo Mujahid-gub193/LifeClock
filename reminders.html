@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminders — LifeClock</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .rm-layout { max-width: 760px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:.75rem; }
+    .page-title  { font-size:1.4rem; font-weight:800; letter-spacing:-.02em; }
+    .page-sub    { font-size:.82rem; color:var(--text-secondary); margin-top:.15rem; }
+
+    .rm-form { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.5rem; display:none; }
+    .rm-form.open { display:block; }
+    .rm-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:.75rem; }
+
+    .rm-list { display:flex; flex-direction:column; gap:.6rem; }
+    .rm-item {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:.85rem 1rem;
+      display:flex; align-items:center; gap:.85rem;
+    }
+    .rm-item.today  { border-color:var(--accent-current); background:rgba(240,165,0,.05); }
+    .rm-item.soon   { border-color:rgba(56,139,253,.4); }
+    .rm-icon { font-size:1.5rem; flex-shrink:0; width:36px; text-align:center; }
+    .rm-info { flex:1; }
+    .rm-name { font-size:.92rem; font-weight:700; }
+    .rm-date { font-size:.75rem; color:var(--text-secondary); margin-top:.1rem; }
+    .rm-countdown { font-size:.78rem; font-weight:700; white-space:nowrap; }
+    .rm-countdown.today-text { color:var(--accent-current); }
+    .rm-countdown.soon-text  { color:var(--accent-blue); }
+    .rm-actions { display:flex; gap:.3rem; }
+
+    .section-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); margin:1.25rem 0 .5rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="rm-layout">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Reminders</div>
+        <div class="page-sub">Birthdays, anniversaries & special dates</div>
+      </div>
+      <button class="btn btn-primary" id="addBtn">+ Add Reminder</button>
+    </div>
+
+    <div class="rm-form" id="rmForm">
+      <div class="rm-form-grid">
+        <div>
+          <label class="setting-label">Name *</label>
+          <input type="text" id="rmName" class="input" placeholder="e.g. Mom, Wedding Anniversary">
+        </div>
+        <div>
+          <label class="setting-label">Type</label>
+          <select id="rmType" class="input">
+            <option value="birthday">Birthday</option>
+            <option value="anniversary">Anniversary</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Date (MM-DD or YYYY-MM-DD)</label>
+          <input type="text" id="rmDate" class="input" placeholder="e.g. 03-15 or 1990-03-15">
+        </div>
+        <div>
+          <label class="setting-label">Notes</label>
+          <input type="text" id="rmNotes" class="input" placeholder="Optional note">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveRmBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelRmBtn">Cancel</button>
+      </div>
+      <p id="rmErr" class="form-error hidden"></p>
+    </div>
+
+    <div class="section-label" id="todayLabel" style="display:none">Today</div>
+    <div id="todayList"></div>
+    <div class="section-label">Upcoming (next 30 days)</div>
+    <div id="upcomingList"><p class="empty-msg">No upcoming reminders</p></div>
+    <div class="section-label">All Reminders</div>
+    <div class="rm-list" id="allList"><p class="empty-msg">No reminders yet</p></div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Reminder management for recurring personal events.
+  </footer>
+
+  <script src="reminders.js"></script>
+</body>
+</html>

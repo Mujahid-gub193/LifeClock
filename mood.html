@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mood & Journal — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .md-layout { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; }
+    .md-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Date nav */
+    .md-date-nav { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.5rem; }
+    .md-date-label { font-size: 1rem; font-weight: 700; flex: 1; text-align: center; }
+
+    /* Today card */
+    .md-today { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
+    .md-today-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: 1rem; }
+
+    /* Mood picker */
+    .mood-picker { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mood-btn {
+      display: flex; flex-direction: column; align-items: center; gap: .2rem;
+      padding: .6rem .9rem; border: 2px solid var(--border);
+      border-radius: var(--radius); background: var(--bg-input);
+      cursor: pointer; transition: all .15s; font-size: .75rem; color: var(--text-secondary);
+    }
+    .mood-btn .mood-emoji { font-size: 1.8rem; line-height: 1; }
+    .mood-btn:hover { border-color: var(--accent-blue); }
+    .mood-btn.active { border-color: var(--accent-current); background: rgba(240,165,0,.1); color: var(--text-primary); }
+
+    /* Tags */
+    .tag-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .tag-btn {
+      padding: .25rem .65rem; border: 1px solid var(--border);
+      border-radius: 99px; font-size: .75rem; font-weight: 600;
+      background: var(--bg-input); color: var(--text-secondary); cursor: pointer; transition: all .15s;
+    }
+    .tag-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+
+    /* Journal */
+    .md-journal { width: 100%; min-height: 120px; resize: vertical; }
+
+    /* Stats */
+    .md-stats { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .stat-pill { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .45rem .9rem; font-size: .82rem; font-weight: 600; }
+    .stat-pill span { color: var(--accent-blue); font-weight: 800; margin-right: .25rem; }
+
+    /* Chart */
+    .md-chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem; }
+    .md-chart-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .md-chart-wrap { height: 140px; }
+
+    /* Heatmap */
+    .md-heatmap-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+    .md-heatmap { display: flex; gap: 3px; }
+    .md-heatmap-col { display: flex; flex-direction: column; gap: 3px; }
+    .md-hcell {
+      width: 14px; height: 14px; border-radius: 2px;
+      background: var(--color-future); cursor: pointer; flex-shrink: 0;
+    }
+    .md-hcell.today { outline: 2px solid var(--accent-current); outline-offset: 1px; }
+
+    /* Log */
+    .md-log { display: flex; flex-direction: column; gap: .6rem; }
+    .md-entry {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+      display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: start;
+    }
+    .md-entry-emoji { font-size: 1.8rem; line-height: 1; }
+    .md-entry-info { display: flex; flex-direction: column; gap: .25rem; }
+    .md-entry-date { font-size: .75rem; color: var(--text-secondary); font-weight: 600; }
+    .md-entry-tags { display: flex; gap: .3rem; flex-wrap: wrap; }
+    .md-tag { font-size: .68rem; padding: .1rem .4rem; border-radius: 99px; background: var(--bg-input); color: var(--text-secondary); }
+    .md-entry-journal { font-size: .82rem; color: var(--text-primary); margin-top: .2rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="md-layout">
+    <div class="md-header">
+      <div class="page-title">Mood & Journal</div>
+    </div>
+
+    <!-- Date Nav -->
+    <div class="md-date-nav">
+      <button class="btn btn-xs" id="prevDay">← Prev</button>
+      <div class="md-date-label" id="dateLabel"></div>
+      <button class="btn btn-xs" id="nextDay">Next →</button>
+      <button class="btn btn-xs btn-ghost" id="todayBtn">Today</button>
+    </div>
+
+    <!-- Today's Entry -->
+    <div class="md-today">
+      <div class="md-today-title">How are you feeling?</div>
+
+      <div class="mood-picker" id="moodPicker">
+        <button class="mood-btn" data-mood="1"><span class="mood-emoji"></span>Awful</button>
+        <button class="mood-btn" data-mood="2"><span class="mood-emoji"></span>Bad</button>
+        <button class="mood-btn" data-mood="3"><span class="mood-emoji"></span>Okay</button>
+        <button class="mood-btn" data-mood="4"><span class="mood-emoji"></span>Good</button>
+        <button class="mood-btn" data-mood="5"><span class="mood-emoji"></span>Great</button>
+      </div>
+
+      <div style="margin-bottom:.75rem">
+        <div style="font-size:.78rem;color:var(--text-secondary);margin-bottom:.4rem;font-weight:600">Tags</div>
+        <div class="tag-row" id="tagRow">
+          <button class="tag-btn" data-tag="happy">happy</button>
+          <button class="tag-btn" data-tag="anxious">anxious</button>
+          <button class="tag-btn" data-tag="tired"> tired</button>
+          <button class="tag-btn" data-tag="energetic">energetic</button>
+          <button class="tag-btn" data-tag="sad">sad</button>
+          <button class="tag-btn" data-tag="calm">calm</button>
+          <button class="tag-btn" data-tag="stressed">stressed</button>
+          <button class="tag-btn" data-tag="grateful">grateful</button>
+          <button class="tag-btn" data-tag="motivated">motivated</button>
+          <button class="tag-btn" data-tag="lonely">lonely</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:.75rem">
+        <div style="font-size:.78rem;color:var(--text-secondary);margin-bottom:.4rem;font-weight:600">Journal</div>
+        <textarea id="journalText" class="input textarea md-journal" placeholder="Write about your day..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <button class="btn btn-primary" id="saveEntryBtn">Save Entry</button>
+        <button class="btn btn-danger btn-sm hidden" id="deleteEntryBtn">Delete</button>
+        <span id="saveMsg" class="hidden" style="font-size:.8rem;color:var(--accent-green)">Saved</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="md-stats" id="mdStats"></div>
+
+    <!-- Chart -->
+    <div class="md-chart-card">
+      <div class="md-chart-title">Mood — Last 30 Days</div>
+      <div class="md-chart-wrap"><canvas id="moodChart"></canvas></div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="md-chart-card">
+      <div class="md-chart-title">Mood Heatmap — Last 12 Weeks</div>
+      <div class="md-heatmap-wrap"><div class="md-heatmap" id="mdHeatmap"></div></div>
+    </div>
+
+    <!-- Journal Log -->
+    <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:.75rem">Recent Entries</div>
+    <div class="md-log" id="mdLog"><p class="empty-msg">No entries yet</p></div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Daily mood logging and reflective journaling.
+  </footer>
+
+  <script src="mood.js"></script>
+</body>
+</html>

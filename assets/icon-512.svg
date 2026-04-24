@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#0d1117"/>
+
+  <!-- Outer clock ring -->
+  <circle cx="256" cy="220" r="160" fill="#161b22" stroke="#388bfd" stroke-width="8"/>
+
+  <!-- Clock tick marks -->
+  <line x1="256" y1="72"  x2="256" y2="96"  stroke="#388bfd" stroke-width="6" stroke-linecap="round"/>
+  <line x1="256" y1="344" x2="256" y2="368" stroke="#388bfd" stroke-width="6" stroke-linecap="round"/>
+  <line x1="108" y1="220" x2="132" y2="220" stroke="#388bfd" stroke-width="6" stroke-linecap="round"/>
+  <line x1="380" y1="220" x2="404" y2="220" stroke="#388bfd" stroke-width="6" stroke-linecap="round"/>
+  <line x1="151" y1="115" x2="168" y2="132" stroke="#388bfd" stroke-width="4" stroke-linecap="round"/>
+  <line x1="344" y1="308" x2="361" y2="325" stroke="#388bfd" stroke-width="4" stroke-linecap="round"/>
+  <line x1="361" y1="115" x2="344" y2="132" stroke="#388bfd" stroke-width="4" stroke-linecap="round"/>
+  <line x1="168" y1="308" x2="151" y2="325" stroke="#388bfd" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Hour hand -->
+  <line x1="256" y1="220" x2="256" y2="130" stroke="#e6edf3" stroke-width="10" stroke-linecap="round"/>
+  <!-- Minute hand -->
+  <line x1="256" y1="220" x2="316" y2="260" stroke="#f0a500" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Center dot -->
+  <circle cx="256" cy="220" r="12" fill="#388bfd"/>
+
+  <!-- Calendar grid (bottom inside clock face) -->
+  <rect x="196" y="268" width="120" height="80" rx="8" fill="#1c2230" stroke="#30363d" stroke-width="2"/>
+  <!-- Grid dots: row 1 -->
+  <circle cx="220" cy="288" r="5" fill="#3fb950"/>
+  <circle cx="244" cy="288" r="5" fill="#3fb950"/>
+  <circle cx="268" cy="288" r="5" fill="#3fb950"/>
+  <circle cx="292" cy="288" r="5" fill="#388bfd"/>
+  <!-- Grid dots: row 2 -->
+  <circle cx="220" cy="310" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="244" cy="310" r="5" fill="#f0a500"/>
+  <circle cx="268" cy="310" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="292" cy="310" r="5" fill="#3fb950" opacity=".4"/>
+  <!-- Grid dots: row 3 -->
+  <circle cx="220" cy="332" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="244" cy="332" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="268" cy="332" r="5" fill="#388bfd" opacity=".6"/>
+  <circle cx="292" cy="332" r="5" fill="#3fb950" opacity=".4"/>
+
+  <!-- Wordmark -->
+  <text x="256" y="430" font-family="Inter,system-ui,sans-serif" font-size="52" font-weight="800" letter-spacing="-2" text-anchor="middle" fill="#e6edf3">Life<tspan fill="#388bfd">Clock</tspan></text>
+
+  <!-- Tagline -->
+  <text x="256" y="468" font-family="Inter,system-ui,sans-serif" font-size="18" font-weight="500" letter-spacing="4" text-anchor="middle" fill="#8b949e">YOUR LIFE. YOUR TIME.</text>
+</svg>

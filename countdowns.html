@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdowns — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .cd-layout { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+    .cd-form { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .cd-form .input { flex: 1; min-width: 140px; }
+    .cd-form .input-emoji { width: 70px; flex: none; text-align: center; font-size: 1.2rem; }
+    .cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+    .cd-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      display: flex; flex-direction: column; gap: .5rem;
+      position: relative;
+    }
+    .cd-card.past { border-color: var(--accent-red); opacity: .7; }
+    .cd-emoji { font-size: 2rem; line-height: 1; }
+    .cd-name { font-size: 1rem; font-weight: 700; }
+    .cd-date { font-size: .78rem; color: var(--text-secondary); }
+    .cd-timer {
+      display: flex; gap: .5rem; margin-top: .25rem; flex-wrap: wrap;
+    }
+    .cd-unit { text-align: center; }
+    .cd-num {
+      font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      color: var(--accent-blue); line-height: 1;
+    }
+    .cd-card.past .cd-num { color: var(--accent-red); }
+    .cd-lbl { font-size: .65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; }
+    .cd-del {
+      position: absolute; top: .6rem; right: .6rem;
+      background: none; border: none; color: var(--text-secondary);
+      font-size: .9rem; cursor: pointer; transition: color .15s;
+    }
+    .cd-del:hover { color: var(--accent-red); }
+    .cd-past-label { font-size: .8rem; color: var(--accent-red); font-weight: 700; }
+    .page-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.25rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="cd-layout">
+    <div class="page-title">Countdowns</div>
+
+    <!-- Add Form -->
+    <form class="cd-form" id="cdForm">
+        <input type="text" class="input input-emoji" id="cdEmoji" placeholder="CD" maxlength="4">
+      <input type="text" class="input" id="cdName" placeholder="Event name (e.g. Exam, Birthday)" required>
+      <input type="datetime-local" class="input" id="cdDate" required>
+      <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+
+    <!-- Countdown Cards -->
+    <div class="cd-grid" id="cdGrid">
+      <p class="empty-msg">No countdowns yet</p>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Countdown tracking for deadlines and important dates.
+  </footer>
+
+  <script src="countdowns.js"></script>
+</body>
+</html>

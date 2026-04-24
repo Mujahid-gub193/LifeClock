@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Audit — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .ta-layout { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; }
+    .ta-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Stats */
+    .ta-stats { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .stat-pill { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .45rem .9rem; font-size: .82rem; font-weight: 600; }
+    .stat-pill span { color: var(--accent-blue); font-weight: 800; margin-right: .25rem; }
+
+    /* Form */
+    .ta-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; display: none; }
+    .ta-form.open { display: block; }
+    .ta-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    .ta-form-grid .full { grid-column: 1 / -1; }
+
+    /* Two-col layout */
+    .ta-body { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+    @media (max-width: 700px) { .ta-body { grid-template-columns: 1fr; } }
+
+    /* Chart card */
+    .ta-chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; }
+    .ta-chart-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .ta-chart-wrap { height: 200px; }
+
+    /* Date filter */
+    .ta-date-filter { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+
+    /* Entry list */
+    .ta-list { display: flex; flex-direction: column; gap: .5rem; }
+    .ta-date-group { font-size: .75rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin: .5rem 0 .25rem; letter-spacing: .05em; }
+    .ta-entry {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .7rem .9rem;
+      display: grid; grid-template-columns: 10px 1fr auto auto; gap: .6rem; align-items: center;
+    }
+    .ta-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .ta-entry-info { display: flex; flex-direction: column; gap: .1rem; }
+    .ta-activity { font-size: .88rem; font-weight: 700; }
+    .ta-meta { font-size: .73rem; color: var(--text-secondary); }
+    .ta-dur { font-size: .9rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent-blue); white-space: nowrap; }
+    .ta-actions { display: flex; gap: .3rem; }
+
+    /* Category bar */
+    .cat-bar-list { display: flex; flex-direction: column; gap: .5rem; }
+    .cat-bar-item { display: flex; flex-direction: column; gap: .2rem; }
+    .cat-bar-label { display: flex; justify-content: space-between; font-size: .78rem; }
+    .cat-bar-track { height: 6px; background: var(--bg-input); border-radius: 99px; overflow: hidden; }
+    .cat-bar-fill  { height: 100%; border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="ta-layout">
+    <div class="ta-header">
+      <div class="page-title">Time Audit</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Log Activity</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="ta-stats" id="taStats"></div>
+
+    <!-- Add/Edit Form -->
+    <div class="ta-form" id="taForm">
+      <div class="ta-form-grid">
+        <div>
+          <label class="setting-label">Activity *</label>
+          <input type="text" id="tActivity" class="input" placeholder="e.g. Deep work, Exercise">
+        </div>
+        <div>
+          <label class="setting-label">Category</label>
+          <select id="tCategory" class="input">
+            <option>Work</option><option>Study</option><option>Exercise</option>
+            <option>Social</option><option>Entertainment</option><option>Sleep</option>
+            <option>Eating</option><option>Travel</option><option>Chores</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Date *</label>
+          <input type="date" id="tDate" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Start Time</label>
+          <input type="time" id="tStart" class="input">
+        </div>
+        <div>
+          <label class="setting-label">End Time</label>
+          <input type="time" id="tEnd" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Duration (hrs) — auto</label>
+          <input type="number" id="tDuration" class="input" step="0.25" min="0.25" max="24" placeholder="e.g. 1.5">
+        </div>
+        <div class="full">
+          <label class="setting-label">Notes</label>
+          <input type="text" id="tNotes" class="input" placeholder="Optional notes">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveEntryBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelEntryBtn">Cancel</button>
+      </div>
+      <p id="taErr" class="form-error hidden"></p>
+    </div>
+
+    <!-- Date filter -->
+    <div class="ta-date-filter">
+      <button class="btn btn-xs active" data-range="7">Last 7 days</button>
+      <button class="btn btn-xs" data-range="30">Last 30 days</button>
+      <button class="btn btn-xs" data-range="all">All time</button>
+    </div>
+
+    <div class="ta-body">
+      <!-- Left: entry log -->
+      <div>
+        <div class="ta-list" id="taList"><p class="empty-msg">No entries yet</p></div>
+      </div>
+
+      <!-- Right: charts -->
+      <div>
+        <div class="ta-chart-card">
+          <div class="ta-chart-title">Hours by Category</div>
+          <div class="ta-chart-wrap"><canvas id="donutChart"></canvas></div>
+        </div>
+        <div class="ta-chart-card">
+          <div class="ta-chart-title">Category Breakdown</div>
+          <div class="cat-bar-list" id="catBars"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Time allocation analysis across core categories.
+  </footer>
+
+  <script src="timeaudit.js"></script>
+</body>
+</html>

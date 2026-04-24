@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habits — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .hb-layout { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; }
+    .hb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Form */
+    .hb-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; display: none; }
+    .hb-form.open { display: block; }
+    .hb-form-grid { display: grid; grid-template-columns: 60px 1fr 1fr 80px; gap: .75rem; margin-bottom: .75rem; }
+
+    /* Date nav */
+    .hb-date-nav { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .hb-date-label { font-size: 1rem; font-weight: 700; flex: 1; text-align: center; }
+
+    /* Today's habits */
+    .hb-list { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 2rem; }
+    .hb-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: .75rem; align-items: center;
+      transition: border-color .15s;
+    }
+    .hb-item.done { border-color: var(--accent-green); background: rgba(63,185,80,.05); }
+    .hb-check {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--bg-input);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; cursor: pointer; transition: all .15s; flex-shrink: 0;
+    }
+    .hb-item.done .hb-check { background: var(--accent-green); border-color: var(--accent-green); }
+    .hb-info { display: flex; flex-direction: column; gap: .15rem; }
+    .hb-name { font-size: .92rem; font-weight: 700; }
+    .hb-meta { font-size: .73rem; color: var(--text-secondary); }
+    .hb-streak { font-size: .8rem; font-weight: 700; color: var(--accent-current); white-space: nowrap; }
+    .hb-actions { display: flex; gap: .3rem; }
+
+    /* Heatmap */
+    .hb-section-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .hb-heatmap-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+    .hb-heatmap { display: flex; flex-direction: column; gap: .5rem; }
+    .hb-heatmap-row { display: flex; align-items: center; gap: .4rem; }
+    .hb-heatmap-label { font-size: .75rem; font-weight: 600; width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hb-heatmap-cells { display: flex; gap: 2px; }
+    .hb-cell {
+      width: 14px; height: 14px; border-radius: 2px;
+      background: var(--color-future); flex-shrink: 0;
+      cursor: default; transition: opacity .1s;
+    }
+    .hb-cell.done { background: var(--accent-green); }
+    .hb-cell.today { outline: 2px solid var(--accent-current); outline-offset: 1px; }
+    .hb-day-labels { display: flex; gap: 2px; margin-left: 124px; margin-bottom: 2px; }
+    .hb-day-lbl { width: 14px; font-size: 8px; color: var(--text-secondary); text-align: center; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo">Habits Tracker</div>
+    <div></div>
+  </header>
+
+  <div class="hb-layout">
+    <div class="hb-header">
+      <div class="page-title">Habits Tracker</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ New Habit</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div class="hb-form" id="hbForm">
+      <div class="hb-form-grid">
+        <div>
+          <label class="setting-label">Label</label>
+          <input type="text" id="hEmoji" class="input" placeholder="H" maxlength="4" style="text-align:center;font-size:1rem">
+        </div>
+        <div>
+          <label class="setting-label">Habit Name *</label>
+          <input type="text" id="hName" class="input" placeholder="e.g. Morning run, Read 30 min">
+        </div>
+        <div>
+          <label class="setting-label">Category</label>
+          <select id="hCategory" class="input">
+            <option>General</option><option>Health</option><option>Fitness</option>
+            <option>Learning</option><option>Mindfulness</option><option>Productivity</option><option>Social</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Target/day</label>
+          <input type="number" id="hTarget" class="input" value="1" min="1" max="10">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveHabitBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelHabitBtn">Cancel</button>
+      </div>
+      <p id="hbErr" class="form-error hidden"></p>
+    </div>
+
+    <!-- Date Nav -->
+    <div class="hb-date-nav">
+      <button class="btn btn-xs" id="prevDay">← Prev</button>
+      <div class="hb-date-label" id="dateLabel"></div>
+      <button class="btn btn-xs" id="nextDay">Next →</button>
+      <button class="btn btn-xs btn-ghost" id="todayBtn">Today</button>
+    </div>
+
+    <!-- Habit checklist -->
+    <div class="hb-list" id="hbList"><p class="empty-msg">No habits yet</p></div>
+
+    <!-- Heatmap (last 30 days) -->
+    <div class="hb-section-title">Last 30 Days</div>
+    <div class="hb-heatmap-wrap">
+      <div class="hb-day-labels" id="hbDayLabels"></div>
+      <div class="hb-heatmap" id="hbHeatmap"></div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Habits dashboard and consistency tracking.
+  </footer>
+
+  <script src="habits.js"></script>
+</body>
+</html>

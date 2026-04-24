@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeClock — Shared Profile</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .share-layout { max-width: 680px; margin: 3rem auto; padding: 0 1.5rem 4rem; text-align: center; }
+    .share-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent-blue); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #fff; margin: 0 auto 1rem; }
+    .share-name   { font-size: 1.6rem; font-weight: 800; }
+    .share-sub    { font-size: .85rem; color: var(--text-secondary); margin-top: .25rem; }
+    .share-stats  { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin: 1.5rem 0; }
+    .share-stat   { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: .85rem; }
+    .share-stat-val { font-size: 1.6rem; font-weight: 800; }
+    .share-stat-lbl { font-size: .7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; margin-top: .2rem; }
+    .life-bar-wrap  { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .life-bar-track { height: 12px; background: var(--bg-input); border-radius: 6px; overflow: hidden; margin: .75rem 0 .4rem; }
+    .life-bar-fill  { height: 12px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius: 6px; transition: width .8s; }
+    .life-bar-labels{ display: flex; justify-content: space-between; font-size: .75rem; color: var(--text-secondary); }
+    .subjects-wrap  { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; text-align: left; }
+    .subjects-title { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-secondary); margin-bottom: .75rem; }
+    .subj-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .4rem; }
+    .subj-name { font-size: .82rem; font-weight: 600; width: 120px; flex-shrink: 0; }
+    .subj-bar-wrap { flex: 1; height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
+    .subj-bar-fill { height: 6px; background: var(--accent-blue); border-radius: 3px; }
+    .subj-time { font-size: .72rem; color: var(--text-secondary); width: 50px; text-align: right; }
+    .share-cta { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div></div>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="share-layout" id="shareLayout">
+    <p class="empty-msg">Loading...</p>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Public profile snapshot for shared progress.
+  </footer>
+
+  <script>
+    const userId = new URLSearchParams(location.search).get('u');
+    if (!userId) { document.getElementById('shareLayout').innerHTML = '<p class="empty-msg">Invalid share link.</p>'; }
+    else {
+      fetch(`/api/share/${userId}`)
+        .then(r => r.json())
+        .then(({ user, sessions }) => {
+          if (!user) { document.getElementById('shareLayout').innerHTML = '<p class="empty-msg">Profile not found.</p>'; return; }
+
+          const dob = user.dateOfBirth ? new Date(user.dateOfBirth + 'T00:00:00') : null;
+          const now = new Date();
+          const ageMs = dob ? now - dob : 0;
+          const ageDays = Math.floor(ageMs / 86400000);
+          const ageYears = (ageMs / (365.25*86400000)).toFixed(1);
+          const lifeExp = user.lifeExpectancy || 80;
+          const pct = dob ? Math.min(100, ((ageMs / (lifeExp*365.25*86400000))*100)).toFixed(1) : 0;
+
+          const subjectMap = {};
+          sessions.forEach(s => { subjectMap[s.subject] = (subjectMap[s.subject]||0) + (s.actualDuration||s.plannedDuration||0); });
+          const subjects = Object.entries(subjectMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+          const maxSecs = subjects[0]?.[1] || 1;
+
+          function fmtTime(s) { const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); return h ? `${h}h ${m}m` : `${m}m`; }
+
+          document.getElementById('shareLayout').innerHTML = `
+            <div id="avatarWrap" class="share-avatar">${user.name.charAt(0).toUpperCase()}</div>
+            <div class="share-name">${user.name}</div>
+            <div class="share-sub">LifeClock Profile</div>
+
+            <div class="share-stats">
+              <div class="share-stat"><div class="share-stat-val">${ageYears}</div><div class="share-stat-lbl">Age</div></div>
+              <div class="share-stat"><div class="share-stat-val">${ageDays.toLocaleString()}</div><div class="share-stat-lbl">Days Lived</div></div>
+              <div class="share-stat"><div class="share-stat-val">${sessions.length}</div><div class="share-stat-lbl">Sessions</div></div>
+            </div>
+
+            ${dob ? `<div class="life-bar-wrap">
+              <div style="font-size:.8rem;font-weight:700;color:var(--text-secondary)">Life Progress</div>
+              <div class="life-bar-track"><div class="life-bar-fill" style="width:${pct}%"></div></div>
+              <div class="life-bar-labels"><span>${pct}% lived</span><span>${(lifeExp - parseFloat(ageYears)).toFixed(1)} yrs remaining</span></div>
+            </div>` : ''}
+
+            ${subjects.length ? `<div class="subjects-wrap">
+              <div class="subjects-title">Study Subjects</div>
+              ${subjects.map(([name, secs]) => `
+                <div class="subj-row">
+                  <div class="subj-name">${name}</div>
+                  <div class="subj-bar-wrap"><div class="subj-bar-fill" style="width:${Math.round((secs/maxSecs)*100)}%"></div></div>
+                  <div class="subj-time">${fmtTime(secs)}</div>
+                </div>`).join('')}
+            </div>` : ''}
+
+            <div class="share-cta">
+              <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.75rem">Want to track your own life?</p>
+              <a href="/" class="btn btn-primary">Start with LifeClock</a>
+            </div>`;
+
+          // Set avatar after DOM inserted
+          if (user.avatar) {
+            const wrap = document.getElementById('avatarWrap');
+            wrap.innerHTML = '';
+            wrap.style.background = 'none';
+            wrap.style.padding = '0';
+            const img = document.createElement('img');
+            img.src = user.avatar;
+            img.style.cssText = 'width:72px;height:72px;border-radius:50%;object-fit:cover;';
+            wrap.appendChild(img);
+          }
+        })
+        .catch(() => { document.getElementById('shareLayout').innerHTML = '<p class="empty-msg">Failed to load profile.</p>'; });
+    }
+  </script>
+</body>
+</html>

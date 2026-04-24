@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Review — LifeClock</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .wr-layout { max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:.75rem; }
+    .page-title  { font-size:1.4rem; font-weight:800; letter-spacing:-.02em; }
+    .page-sub    { font-size:.82rem; color:var(--text-secondary); margin-top:.15rem; }
+
+    .week-nav { display:flex; align-items:center; gap:.75rem; }
+    .week-label { font-size:.95rem; font-weight:700; min-width:220px; text-align:center; }
+    .nav-btn { background:var(--bg-card); border:1px solid var(--border); color:var(--text-primary); border-radius:6px; padding:.35rem .75rem; font-size:.82rem; font-weight:600; cursor:pointer; }
+    .nav-btn:hover { border-color:var(--accent-blue); }
+
+    .wr-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    .wr-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem; }
+
+    .stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; }
+    .stat-card-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); margin-bottom:.35rem; }
+    .stat-card-value { font-size:2rem; font-weight:800; line-height:1; }
+    .stat-card-sub   { font-size:.75rem; color:var(--text-secondary); margin-top:.25rem; }
+    .stat-card.blue  { border-color:rgba(56,139,253,.4); }
+    .stat-card.green { border-color:rgba(63,185,80,.4); }
+    .stat-card.amber { border-color:rgba(240,165,0,.4); }
+    .stat-card.purple{ border-color:rgba(124,92,191,.4); }
+    .stat-card.red   { border-color:rgba(248,81,73,.4); }
+    .stat-card.teal  { border-color:rgba(29,158,117,.4); }
+
+    .section-title { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); margin:1.25rem 0 .6rem; }
+
+    .chart-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; }
+
+    .mood-row { display:flex; gap:.4rem; align-items:center; margin-bottom:.5rem; }
+    .mood-day-label { font-size:.72rem; color:var(--text-secondary); width:32px; flex-shrink:0; }
+    .mood-bar-wrap  { flex:1; height:8px; background:var(--bg-input); border-radius:4px; overflow:hidden; }
+    .mood-bar-fill  { height:8px; border-radius:4px; transition:width .4s; }
+    .mood-val       { font-size:.72rem; font-weight:700; width:20px; text-align:right; }
+
+    .session-row { display:flex; align-items:center; justify-content:space-between; padding:.45rem .6rem; background:var(--bg-input); border-radius:6px; margin-bottom:.35rem; font-size:.82rem; }
+    .session-subject { font-weight:700; }
+    .session-dur { color:var(--text-secondary); font-size:.75rem; }
+
+    .habit-row { display:flex; align-items:center; gap:.6rem; margin-bottom:.4rem; }
+    .habit-name { font-size:.82rem; font-weight:600; flex:1; }
+    .habit-pct  { font-size:.75rem; font-weight:700; color:var(--accent-green); width:36px; text-align:right; }
+    .habit-bar-wrap { width:80px; height:6px; background:var(--bg-input); border-radius:3px; overflow:hidden; }
+    .habit-bar-fill { height:6px; background:var(--accent-green); border-radius:3px; }
+
+    .reflection-area { width:100%; min-height:120px; resize:vertical; }
+    .reflection-saved { font-size:.75rem; color:var(--accent-green); margin-top:.35rem; display:none; }
+
+    @media (max-width:600px) {
+      .wr-grid, .wr-grid-3 { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="wr-layout">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Weekly Review</div>
+        <div class="page-sub">Summary of your week</div>
+      </div>
+      <div class="week-nav">
+        <button class="nav-btn" id="prevWeek">← Prev</button>
+        <div class="week-label" id="weekLabel"></div>
+        <button class="nav-btn" id="nextWeek">Next →</button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="wr-grid-3">
+      <div class="stat-card blue">
+        <div class="stat-card-label">Study Time</div>
+        <div class="stat-card-value" id="statStudy">—</div>
+        <div class="stat-card-sub">hours this week</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-card-label">Sessions</div>
+        <div class="stat-card-value" id="statSessions">—</div>
+        <div class="stat-card-sub">completed</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-card-label">Avg Mood</div>
+        <div class="stat-card-value" id="statMood">—</div>
+        <div class="stat-card-sub">out of 5</div>
+      </div>
+    </div>
+    <div class="wr-grid">
+      <div class="stat-card teal">
+        <div class="stat-card-label">Habits Completed</div>
+        <div class="stat-card-value" id="statHabits">—</div>
+        <div class="stat-card-sub">check-ins this week</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-card-label">Sleep Avg</div>
+        <div class="stat-card-value" id="statSleep">—</div>
+        <div class="stat-card-sub">hours per night</div>
+      </div>
+    </div>
+
+    <!-- Mood chart -->
+    <div class="section-title">Mood This Week</div>
+    <div class="chart-card" id="moodChartWrap">
+      <div id="moodBars"></div>
+    </div>
+
+    <!-- Sessions breakdown -->
+    <div class="section-title">Study Sessions</div>
+    <div id="sessionsList"><p class="empty-msg">No sessions this week</p></div>
+
+    <!-- Habit completion -->
+    <div class="section-title">Habit Completion</div>
+    <div id="habitsList"><p class="empty-msg">No habits tracked</p></div>
+
+    <!-- Reflection -->
+    <div class="section-title">Weekly Reflection</div>
+    <div class="chart-card">
+      <textarea class="input reflection-area" id="reflectionText" placeholder="What went well? What could be better? What are your goals for next week?"></textarea>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-top:.5rem">
+        <button class="btn btn-primary btn-sm" id="saveReflectionBtn">Save Reflection</button>
+          <span class="reflection-saved" id="reflectionSaved">Saved</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Weekly review summaries and planning notes.
+  </footer>
+
+  <script src="weekly-review.js"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goals — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .goals-layout { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .goals-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .75rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; }
+
+    /* Stats bar */
+    .goals-stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat-pill {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .5rem 1rem;
+      font-size: .85rem; font-weight: 600;
+    }
+    .stat-pill span { color: var(--accent-blue); font-size: 1.1rem; font-weight: 800; margin-right: .3rem; }
+
+    /* Filters */
+    .goals-filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+    .filter-label { font-size: .8rem; color: var(--text-secondary); margin-right: .2rem; }
+
+    /* Add form */
+    .goal-form {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      margin-bottom: 1.5rem; display: none;
+    }
+    .goal-form.open { display: block; }
+    .goal-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    .goal-form-grid .full { grid-column: 1 / -1; }
+
+    /* Goal cards */
+    .goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .goal-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+      display: flex; flex-direction: column; gap: .4rem;
+      transition: border-color .15s;
+    }
+    .goal-card:hover { border-color: var(--accent-blue); }
+    .goal-card.done { opacity: .6; border-color: var(--accent-green); }
+    .goal-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+    .goal-title { font-size: .95rem; font-weight: 700; flex: 1; }
+    .goal-title.done-text { text-decoration: line-through; color: var(--text-secondary); }
+    .goal-category {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; padding: .2rem .5rem;
+      border-radius: 99px; background: var(--bg-input); color: var(--accent-blue);
+      white-space: nowrap;
+    }
+    .goal-meta { font-size: .78rem; color: var(--text-secondary); }
+    .goal-notes { font-size: .8rem; color: var(--text-secondary); font-style: italic; }
+    .goal-actions { display: flex; gap: .4rem; margin-top: .4rem; }
+    .goal-done-badge { font-size: .75rem; color: var(--accent-green); font-weight: 700; }
+
+    /* Progress bar */
+    .goal-progress-wrap { margin-top: .25rem; }
+    .goal-progress-label { display:flex; justify-content:space-between; font-size:.7rem; color:var(--text-secondary); margin-bottom:.25rem; }
+    .goal-progress-track { height:6px; background:var(--bg-input); border-radius:3px; overflow:hidden; }
+    .goal-progress-fill  { height:6px; border-radius:3px; background:var(--accent-blue); transition:width .4s; }
+    .goal-progress-fill.done { background:var(--accent-green); }
+
+    /* Overall chart */
+    .goals-chart-wrap { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.5rem; }
+    .goals-chart-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); margin-bottom:.75rem; }
+    .cat-bar-row { display:flex; align-items:center; gap:.6rem; margin-bottom:.4rem; }
+    .cat-bar-label { font-size:.78rem; font-weight:600; width:90px; flex-shrink:0; }
+    .cat-bar-track { flex:1; height:8px; background:var(--bg-input); border-radius:4px; overflow:hidden; }
+    .cat-bar-fill  { height:8px; border-radius:4px; background:var(--accent-blue); }
+    .cat-bar-count { font-size:.72rem; color:var(--text-secondary); width:40px; text-align:right; }
+
+    /* Category colors */
+    .cat-health    { color: #3fb950; }
+    .cat-career    { color: #388bfd; }
+    .cat-finance   { color: #f0a500; }
+    .cat-travel    { color: #7c5cbf; }
+    .cat-education { color: #58a6ff; }
+    .cat-personal  { color: #f85149; }
+    .cat-general   { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo">Goals & Bucket List</div>
+    <div></div>
+  </header>
+
+  <div class="goals-layout">
+    <div class="goals-header">
+      <div class="page-title">Goals & Bucket List</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Add Goal</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="goals-stats" id="goalStats"></div>
+
+    <!-- Add Form -->
+    <div class="goal-form" id="goalForm">
+      <div class="goal-form-grid">
+        <div class="full">
+          <label class="setting-label">Goal Title *</label>
+          <input type="text" id="gTitle" class="input" placeholder="e.g. Learn to play guitar" required>
+        </div>
+        <div>
+          <label class="setting-label">Category</label>
+          <select id="gCategory" class="input">
+            <option>General</option>
+            <option>Health</option>
+            <option>Career</option>
+            <option>Finance</option>
+            <option>Travel</option>
+            <option>Education</option>
+            <option>Personal</option>
+          </select>
+        </div>
+        <div>
+          <label class="setting-label">Target Age</label>
+          <input type="number" id="gAge" class="input" placeholder="e.g. 35" min="1" max="120">
+        </div>
+        <div>
+          <label class="setting-label">Deadline (optional)</label>
+          <input type="date" id="gDeadline" class="input">
+        </div>
+        <div class="full">
+          <label class="setting-label">Notes</label>
+          <textarea id="gNotes" class="input textarea" rows="2" placeholder="Why is this important to you?"></textarea>
+        </div>
+        <div>
+          <label class="setting-label">Progress % (0–100)</label>
+          <input type="number" id="gProgress" class="input" placeholder="0" min="0" max="100" value="0">
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveGoalBtn">Save Goal</button>
+        <button class="btn btn-ghost" id="cancelGoalBtn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="goals-filters">
+      <span class="filter-label">Filter:</span>
+      <button class="btn btn-xs active" data-filter="all">All</button>
+      <button class="btn btn-xs" data-filter="active">Active</button>
+      <button class="btn btn-xs" data-filter="done">Completed</button>
+      <span class="filter-label" style="margin-left:.5rem">Category:</span>
+      <select id="catFilter" class="input input-sm" style="width:auto">
+        <option value="">All</option>
+        <option>General</option>
+        <option>Health</option>
+        <option>Career</option>
+        <option>Finance</option>
+        <option>Travel</option>
+        <option>Education</option>
+        <option>Personal</option>
+      </select>
+    </div>
+
+    <!-- Category chart -->
+    <div class="goals-chart-wrap" id="catChart"></div>
+
+    <!-- Goals Grid -->
+    <div class="goals-grid" id="goalsGrid">
+      <p class="empty-msg">No goals yet — add your first goal!</p>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Goal planning, progress tracking, and completion review.
+  </footer>
+
+  <script src="goals.js"></script>
+</body>
+</html>

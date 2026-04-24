@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0d1117"/>
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="315" x2="1200" y2="315" stroke="#161b22" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="630" stroke="#161b22" stroke-width="1"/>
+  <!-- Accent glow -->
+  <radialGradient id="glow" cx="30%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#388bfd" stop-opacity="0.12"/>
+    <stop offset="100%" stop-color="#0d1117" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- ── Clock Icon (left) ── -->
+  <circle cx="200" cy="280" r="130" fill="#161b22" stroke="#388bfd" stroke-width="5"/>
+  <!-- Tick marks -->
+  <line x1="200" y1="158" x2="200" y2="178" stroke="#388bfd" stroke-width="5" stroke-linecap="round"/>
+  <line x1="200" y1="382" x2="200" y2="402" stroke="#388bfd" stroke-width="5" stroke-linecap="round"/>
+  <line x1="78"  y1="280" x2="98"  y2="280" stroke="#388bfd" stroke-width="5" stroke-linecap="round"/>
+  <line x1="302" y1="280" x2="322" y2="280" stroke="#388bfd" stroke-width="5" stroke-linecap="round"/>
+  <line x1="114" y1="194" x2="128" y2="208" stroke="#388bfd" stroke-width="3" stroke-linecap="round"/>
+  <line x1="272" y1="352" x2="286" y2="366" stroke="#388bfd" stroke-width="3" stroke-linecap="round"/>
+  <line x1="286" y1="194" x2="272" y2="208" stroke="#388bfd" stroke-width="3" stroke-linecap="round"/>
+  <line x1="128" y1="352" x2="114" y2="366" stroke="#388bfd" stroke-width="3" stroke-linecap="round"/>
+  <!-- Hour hand -->
+  <line x1="200" y1="280" x2="200" y2="200" stroke="#e6edf3" stroke-width="7" stroke-linecap="round"/>
+  <!-- Minute hand -->
+  <line x1="200" y1="280" x2="258" y2="316" stroke="#f0a500" stroke-width="6" stroke-linecap="round"/>
+  <!-- Center -->
+  <circle cx="200" cy="280" r="10" fill="#388bfd"/>
+  <!-- Calendar dots -->
+  <circle cx="168" cy="330" r="5" fill="#3fb950"/>
+  <circle cx="188" cy="330" r="5" fill="#3fb950"/>
+  <circle cx="208" cy="330" r="5" fill="#f0a500"/>
+  <circle cx="228" cy="330" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="168" cy="348" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="188" cy="348" r="5" fill="#388bfd"/>
+  <circle cx="208" cy="348" r="5" fill="#3fb950" opacity=".4"/>
+  <circle cx="228" cy="348" r="5" fill="#3fb950" opacity=".4"/>
+
+  <!-- ── Right content ── -->
+  <!-- Wordmark -->
+  <text x="380" y="220" font-family="Inter,system-ui,sans-serif" font-size="96" font-weight="800" letter-spacing="-3" fill="#e6edf3">Life<tspan fill="#388bfd">Clock</tspan></text>
+
+  <!-- Tagline -->
+  <text x="382" y="272" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="500" letter-spacing="5" fill="#8b949e">YOUR LIFE. YOUR TIME.</text>
+
+  <!-- Divider -->
+  <line x1="380" y1="298" x2="1140" y2="298" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Live clock mockup -->
+  <text x="382" y="360" font-family="Inter,system-ui,sans-serif" font-size="52" font-weight="300" letter-spacing="2" fill="#e6edf3">05:37:42</text>
+  <text x="382" y="395" font-family="Inter,system-ui,sans-serif" font-size="18" fill="#8b949e">Friday, April 24, 2026  ·  Week 17</text>
+
+  <!-- Feature pills -->
+  <rect x="382" y="430" width="160" height="36" rx="18" fill="#1c2230" stroke="#388bfd" stroke-width="1.5"/>
+  <text x="462" y="453" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#388bfd" text-anchor="middle">📅 Life Calendar</text>
+
+  <rect x="556" y="430" width="150" height="36" rx="18" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="631" y="453" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#3fb950" text-anchor="middle">⏱ Study Timers</text>
+
+  <rect x="720" y="430" width="130" height="36" rx="18" fill="#1c2230" stroke="#f0a500" stroke-width="1.5"/>
+  <text x="785" y="453" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#f0a500" text-anchor="middle">🎯 Goals</text>
+
+  <rect x="864" y="430" width="140" height="36" rx="18" fill="#1c2230" stroke="#7c5cbf" stroke-width="1.5"/>
+  <text x="934" y="453" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#7c5cbf" text-anchor="middle">😊 Mood Log</text>
+
+  <rect x="1018" y="430" width="120" height="36" rx="18" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+  <text x="1078" y="453" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#f85149" text-anchor="middle">✅ Habits</text>
+
+  <!-- Bottom tagline -->
+  <text x="600" y="570" font-family="Inter,system-ui,sans-serif" font-size="16" fill="#30363d" text-anchor="middle" letter-spacing="1">localhost:3000</text>
+</svg>

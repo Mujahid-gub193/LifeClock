@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milestones — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .ms-layout { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1.25rem; }
+    .ms-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .75rem; }
+
+    /* Form */
+    .ms-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; display: none; }
+    .ms-form.open { display: block; }
+    .ms-form-grid { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    .ms-form-grid .full { grid-column: 1 / -1; }
+
+    /* Filter */
+    .ms-filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+
+    /* Timeline */
+    .ms-timeline { position: relative; padding-left: 2rem; }
+    .ms-timeline::before {
+      content: ''; position: absolute; left: .6rem; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .ms-year-group { margin-bottom: 1.5rem; }
+    .ms-year-label {
+      font-size: .75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-secondary);
+      margin-bottom: .75rem; position: relative;
+    }
+    .ms-year-label::before {
+      content: ''; position: absolute; left: -1.65rem; top: 50%;
+      transform: translateY(-50%);
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent-blue); border: 2px solid var(--bg-main);
+    }
+    .ms-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+      margin-bottom: .6rem; position: relative;
+      display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: start;
+    }
+    .ms-item::before {
+      content: ''; position: absolute; left: -1.45rem; top: 1.1rem;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--bg-card); border: 2px solid var(--border);
+    }
+    .ms-emoji { font-size: 1.6rem; line-height: 1; }
+    .ms-info { display: flex; flex-direction: column; gap: .2rem; }
+    .ms-title { font-size: .95rem; font-weight: 700; }
+    .ms-date  { font-size: .75rem; color: var(--text-secondary); }
+    .ms-cat   {
+      display: inline-block; font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      padding: .15rem .45rem; border-radius: 99px;
+      background: var(--bg-input); color: var(--accent-blue);
+    }
+    .ms-notes { font-size: .78rem; color: var(--text-secondary); font-style: italic; margin-top: .15rem; }
+    .ms-actions { display: flex; gap: .35rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="ms-layout">
+    <div class="ms-header">
+      <div class="page-title">Life Milestones</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Add Milestone</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div class="ms-form" id="msForm">
+      <div class="ms-form-grid">
+        <div>
+          <label class="setting-label">Label</label>
+          <input type="text" id="mEmoji" class="input" placeholder="M" maxlength="4" style="text-align:center;font-size:1rem">
+        </div>
+        <div>
+          <label class="setting-label">Title *</label>
+          <input type="text" id="mTitle" class="input" placeholder="e.g. Graduated university">
+        </div>
+        <div>
+          <label class="setting-label">Date *</label>
+          <input type="date" id="mDate" class="input">
+        </div>
+        <div>
+          <label class="setting-label">Category</label>
+          <select id="mCategory" class="input">
+            <option>Life</option><option>Education</option><option>Career</option>
+            <option>Travel</option><option>Health</option><option>Family</option>
+            <option>Finance</option><option>Personal</option>
+          </select>
+        </div>
+        <div class="full">
+          <label class="setting-label">Notes</label>
+          <textarea id="mNotes" class="input textarea" rows="2" placeholder="Describe this milestone..."></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-primary" id="saveMsBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelMsBtn">Cancel</button>
+      </div>
+      <p id="msErr" class="form-error hidden"></p>
+    </div>
+
+    <!-- Filters -->
+    <div class="ms-filters">
+      <span style="font-size:.8rem;color:var(--text-secondary)">Category:</span>
+      <button class="btn btn-xs active" data-cat="">All</button>
+      <button class="btn btn-xs" data-cat="Life">Life</button>
+      <button class="btn btn-xs" data-cat="Education">Education</button>
+      <button class="btn btn-xs" data-cat="Career">Career</button>
+      <button class="btn btn-xs" data-cat="Travel">Travel</button>
+      <button class="btn btn-xs" data-cat="Health">Health</button>
+      <button class="btn btn-xs" data-cat="Family">Family</button>
+      <button class="btn btn-xs" data-cat="Finance">Finance</button>
+      <button class="btn btn-xs" data-cat="Personal">Personal</button>
+    </div>
+
+    <!-- Timeline -->
+    <div class="ms-timeline" id="msTimeline">
+      <p class="empty-msg">No milestones yet — add your first life event!</p>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Timeline records for major personal milestones.
+  </footer>
+
+  <script src="milestones.js"></script>
+</body>
+</html>

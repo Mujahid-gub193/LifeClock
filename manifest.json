@@ -1,0 +1,16 @@
+{
+  "name": "LifeClock",
+  "short_name": "LifeClock",
+  "description": "Visualize your life. Track your time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/assets/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/assets/og-image.svg", "sizes": "1200x630", "type": "image/svg+xml" }
+  ]
+}

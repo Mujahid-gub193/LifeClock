@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar — LifeClock</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .cal-layout { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+    .page-title  { font-size:1.4rem; font-weight:800; letter-spacing:-.02em; }
+    .page-subtitle { font-size:.82rem; color:var(--text-secondary); margin-top:.15rem; }
+
+    /* Selected date card */
+    .selected-date-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem;
+    }
+    .sel-date-col { display:flex; flex-direction:column; gap:.2rem; }
+    .sel-cal-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-secondary); }
+    .sel-date-val  { font-size:.92rem; font-weight:700; }
+    .sel-date-val.gregorian { color: var(--accent-blue); }
+    .sel-date-val.bengali   { color: #3fb950; }
+    .sel-date-val.hijri     { color: #f0a500; }
+
+    /* Nav */
+    .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
+    .cal-nav-center { display:flex; align-items:center; gap:.75rem; }
+    .cal-nav-label  { font-size:1.1rem; font-weight:800; min-width:180px; text-align:center; }
+    .cal-nav-btn    { background:var(--bg-card); border:1px solid var(--border); color:var(--text-primary); border-radius:6px; padding:.35rem .75rem; font-size:.82rem; font-weight:600; cursor:pointer; transition:border-color .15s; }
+    .cal-nav-btn:hover { border-color:var(--accent-blue); }
+
+    /* Month badges */
+    .cal-month-info { display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .cal-month-badge { padding:.25rem .7rem; border-radius:99px; font-size:.75rem; font-weight:700; }
+    .cal-month-badge.gregorian { background:rgba(56,139,253,.12); color:var(--accent-blue); }
+    .cal-month-badge.bengali   { background:rgba(63,185,80,.12);  color:#3fb950; }
+    .cal-month-badge.hijri     { background:rgba(240,165,0,.12);  color:#f0a500; }
+
+    /* Grid */
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+    .cal-day-header {
+      text-align:center; font-size:.68rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.06em;
+      color:var(--text-secondary); padding:.5rem 0;
+    }
+    .cal-day-header.weekend { color:var(--accent-red); opacity:.8; }
+
+    .cal-cell {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:6px; padding:.45rem .4rem;
+      cursor:pointer; transition:border-color .15s, background .15s;
+      min-height:76px; display:flex; flex-direction:column; gap:2px;
+      position:relative;
+    }
+    .cal-cell:hover { border-color:var(--accent-blue); background:rgba(56,139,253,.04); }
+    .cal-cell.other-month { opacity:.3; pointer-events:none; }
+    .cal-cell.today { border-color:var(--accent-current); background:rgba(240,165,0,.05); }
+    .cal-cell.today .g-day { color:var(--accent-current); }
+    .cal-cell.selected { border-color:var(--accent-blue); background:rgba(56,139,253,.08); }
+    .cal-cell.weekend .g-day { color:var(--accent-red); }
+
+    .g-day  { font-size:.9rem; font-weight:800; line-height:1; }
+    .b-day  { font-size:.62rem; color:#3fb950; font-weight:600; line-height:1.2; }
+    .h-day  { font-size:.62rem; color:#f0a500; font-weight:600; line-height:1.2; }
+    .b-month-label { font-size:.55rem; color:#3fb950; opacity:.75; }
+    .h-month-label { font-size:.55rem; color:#f0a500; opacity:.75; }
+
+    .cal-cell.has-event { border-color:rgba(63,185,80,.4); }
+    .event-dots  { display:flex; gap:2px; flex-wrap:wrap; margin-top:auto; padding-top:2px; }
+    .event-dot   { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .event-label { font-size:.56rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; line-height:1.3; }
+
+    /* Today indicator dot */
+    .today-dot {
+      position:absolute; top:4px; right:5px;
+      width:6px; height:6px; border-radius:50%;
+      background:var(--accent-current);
+    }
+
+    /* Day modal */
+    .day-modal-events { display:flex; flex-direction:column; gap:.4rem; margin-bottom:1rem; }
+    .day-event-item {
+      display:flex; align-items:flex-start; gap:.6rem;
+      background:var(--bg-input); border-radius:6px; padding:.6rem .75rem;
+      border-left:3px solid transparent;
+    }
+    .day-event-dot   { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+    .day-event-title { flex:1; font-size:.85rem; font-weight:700; }
+    .day-event-note  { font-size:.75rem; color:var(--text-secondary); margin-top:.15rem; }
+    .day-event-actions { display:flex; gap:.25rem; }
+
+    .add-event-form { display:flex; flex-direction:column; gap:.6rem; }
+    .form-section-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); margin-bottom:.1rem; }
+    .color-row { display:flex; gap:.4rem; align-items:center; }
+    .color-swatch { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s, transform .1s; }
+    .color-swatch:hover { transform:scale(1.15); }
+    .color-swatch.active { border-color:#fff; }
+
+    .notify-row { display:flex; gap:.5rem; align-items:center; }
+    .notify-row label { font-size:.78rem; color:var(--text-secondary); white-space:nowrap; }
+
+    @media (max-width:640px) {
+      .selected-date-card { grid-template-columns:1fr; }
+      .cal-cell { min-height:54px; padding:.3rem .25rem; }
+      .g-day { font-size:.78rem; }
+      .b-day, .h-day { font-size:.56rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="topbar-logo"><img src="/assets/logo.svg" alt="LifeClock" height="32"></div>
+    <div></div>
+  </header>
+
+  <div class="cal-layout">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Calendar</div>
+        <div class="page-subtitle">Gregorian · Bengali · Hijri</div>
+      </div>
+      <button class="cal-nav-btn" id="todayBtn">Today</button>
+    </div>
+
+    <!-- Selected date info -->
+    <div class="selected-date-card" id="selectedCard">
+      <div class="sel-date-col">
+        <span class="sel-cal-label">Gregorian</span>
+        <span class="sel-date-val gregorian" id="selGregorian">—</span>
+      </div>
+      <div class="sel-date-col">
+        <span class="sel-cal-label">Bengali</span>
+        <span class="sel-date-val bengali" id="selBengali">—</span>
+      </div>
+      <div class="sel-date-col">
+        <span class="sel-cal-label">Hijri</span>
+        <span class="sel-date-val hijri" id="selHijri">—</span>
+      </div>
+    </div>
+
+    <!-- Month nav -->
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="prevMonth">← Prev</button>
+      <div class="cal-nav-label" id="calNavLabel"></div>
+      <button class="cal-nav-btn" id="nextMonth">Next →</button>
+    </div>
+
+    <!-- Month badges -->
+    <div class="cal-month-info" id="calMonthInfo"></div>
+
+    <!-- Day headers -->
+    <div class="cal-grid" id="calHeaders"></div>
+
+    <!-- Calendar cells -->
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <footer class="page-footer">
+    <strong>LifeClock</strong> | Calendar planning across Gregorian, Bengali, and Hijri views.
+  </footer>
+
+  <!-- Day Modal -->
+  <div class="modal-overlay hidden" id="dayModal">
+    <div class="modal">
+      <button class="modal-close" id="closeDayModal">×</button>
+      <h3 id="dayModalTitle"></h3>
+      <p id="dayModalSub" style="font-size:.8rem;color:var(--text-secondary);margin-bottom:1rem"></p>
+
+      <div class="day-modal-events" id="dayEventsList"></div>
+
+      <div class="add-event-form">
+        <div class="form-section-label">Add Event</div>
+        <input type="text" id="evTitle" class="input" placeholder="Event title">
+        <textarea id="evNote" class="input textarea" rows="2" placeholder="Notes (optional)"></textarea>
+        <div class="notify-row">
+          <label>Notify at</label>
+          <input type="time" id="evNotifyTime" class="input" style="width:130px">
+          <span style="font-size:.72rem;color:var(--text-secondary)">email + browser</span>
+        </div>
+        <div class="color-row">
+          <span style="font-size:.75rem;color:var(--text-secondary)">Color</span>
+          <div class="color-swatch active" data-color="#388bfd" style="background:#388bfd"></div>
+          <div class="color-swatch" data-color="#3fb950" style="background:#3fb950"></div>
+          <div class="color-swatch" data-color="#f0a500" style="background:#f0a500"></div>
+          <div class="color-swatch" data-color="#f85149" style="background:#f85149"></div>
+          <div class="color-swatch" data-color="#7c5cbf" style="background:#7c5cbf"></div>
+          <div class="color-swatch" data-color="#e3b341" style="background:#e3b341"></div>
+        </div>
+        <button class="btn btn-primary" id="saveEvBtn">Save Event</button>
+        <p id="evErr" class="form-error hidden"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="calendar.js"></script>
+</body>
+</html>
