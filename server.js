@@ -709,7 +709,7 @@ app.put('/api/user/password', auth, async (req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 // --- Admin Routes ------------------------------------------------------------
-app.get('/admin', (req, res) => res.sendFile('admin.html', { root: '.' }));
+app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
 
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
